@@ -9,6 +9,7 @@ class SportsnetNow:
         """
         Initialize the sportsnet class
         """
+        self.CONFIG_URI = 'http://nlmobile.cdnak.neulion.com/sportsnetnow/config/config_ios_r3.xml'
         self.CHANNELS_URI = 'http://now.sportsnet.ca/service/channels?format=json'
         self.AUTHORIZED_MSO_URI = 'https://sp.auth.adobe.com/adobe-services/1.0/config/SportsnetNow'
         self.PUBLISH_POINT = 'http://now.sportsnet.ca/service/publishpoint?format=json'
