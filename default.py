@@ -48,10 +48,20 @@ def createMainMenu():
 
 
     channels = sn.getChannels()
+    guide = sn.getGuideData()
     for channel in channels:
+        prog = guide[str(channel['id'])]
         values = { 'menu' : 'channel', 'name' : channel['name'],
                    'id' : channel['id'], 'abbr' : channel['abbr'] }
-        live = xbmcgui.ListItem(values['name'])
+        for key in prog.keys():
+            values[key] = prog[key]
+        title = values['name']
+        if prog['tvshowtitle']:
+            title += ' ([B]' + prog['tvshowtitle'] + '[/B]'
+            if prog['title']:
+                title += ' - [I]' + prog['title'] + '[/I]'
+            title += ')'
+        live = xbmcgui.ListItem(title)
         xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
                                     url=sys.argv[0] + "?" + urllib.urlencode(values),
                                     listitem=live,
@@ -68,7 +78,6 @@ def createLiveMenu(values):
 
 
     channels = provider.getChannels()
-    print channels
     for channel in channels:
         values = { 'menu' : 'channel', 'provider' : pid,
                    'name' : channel['name'], 'id' : channel['id'],
@@ -93,7 +102,15 @@ def playChannel(values):
     else:
         name = values['name'][0]
         li = xbmcgui.ListItem(name)
-        li.setInfo( type="Video", infoLabels={"Title" : name})
+
+        labels = {"title" : values['tvshowtitle'][0],
+                  "studio" : values['name'][0]}
+        if 'title' in values:
+            labels['title'] = values['title'][0]
+        if 'plotoutline' in values:
+            labels["plotoutline"] = values['plotoutline'][0]
+        print "MICAH labels = " + str(labels)
+        li.setInfo(type="Video", infoLabels=labels)
         p = xbmc.Player()
         p.play(stream, li)
 

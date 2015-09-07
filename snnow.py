@@ -1,4 +1,4 @@
-import urllib, urllib2, random, adobe, json, xml.dom.minidom
+import urllib, urllib2, random, time, datetime, adobe, json, xml.dom.minidom
 from msofactory import MSOFactory
 from cookies import Cookies
 from settings import Settings
@@ -14,6 +14,7 @@ class SportsnetNow:
         self.AUTHORIZED_MSO_URI = 'https://sp.auth.adobe.com/adobe-services/1.0/config/SportsnetNow'
         self.PUBLISH_POINT = 'http://now.sportsnet.ca/service/publishpoint?format=json'
         self.USER_AGENT = 'Mozilla/5.0 (iPad; CPU OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F69 ipad sn now 4.0912'
+        self.EPG_PREFIX = 'http://smb.cdnak.nyc.neulion.com/u/smb/sportsnetnow/configs/epg/'
 
     @staticmethod
     def instance():
@@ -115,6 +116,56 @@ class SportsnetNow:
         Settings.instance().store(self.getRequestorID(), 'CHAN_MAP', chan_map)
 
         return chan_map
+
+
+    def getGuideData(self):
+        """
+        Get the guid data for the channels right now.
+        """
+        now = datetime.datetime.now()
+        url = self.EPG_PREFIX + now.strftime("%Y/%m/%d.xml")
+
+        jar = Cookies.getCookieJar()
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
+
+        try:
+            resp = opener.open(url)
+        except urllib2.URLError, e:
+            print e.args
+            return None
+        Cookies.saveCookieJar(jar)
+
+        guide_xml = resp.read()
+        guide = {}
+        dom = xml.dom.minidom.parseString(guide_xml)
+        channels_node = dom.getElementsByTagName('channelEPG')[0]
+        for channel_node in channels_node.getElementsByTagName('EPG'):
+            cid = channel_node.attributes['channelId'].value
+            curr_item = None
+            for item in channel_node.getElementsByTagName('item'):
+                time_str = item.attributes['sl'].value.split('.')[0]
+                item_time = time.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+                item_time = datetime.datetime.fromtimestamp(time.mktime(item_time))
+
+                if item_time > now:
+                    break
+                curr_item = item
+
+            if curr_item:
+                show = {}
+                title = curr_item.attributes['t']
+                episode = curr_item.attributes['e']
+                description = curr_item.attributes['ed']
+                if title:
+                    show['tvshowtitle'] = title.value.encode('utf-8').strip()
+                    show['title'] = episode.value.encode('utf-8').strip()
+                else:
+                    show['tvshowtitle'] = episode.value.encode('utf-8').strip()
+                show['plotoutline'] = description.value.encode('utf-8').strip()
+                guide[cid] = show
+
+        return guide
 
 
     def getChannels(self):

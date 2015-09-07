@@ -146,7 +146,6 @@ class AdobePass:
             dom = xml.dom.minidom.parseString(resp_xml)
         except:
             print "Unable to parse device authorization xml."
-            print resp_xml
             return False
 
         result_node = dom.getElementsByTagName('result')[0]

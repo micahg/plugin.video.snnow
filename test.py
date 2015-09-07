@@ -27,11 +27,8 @@ elif not options.password:
 
 sn = snnow.SportsnetNow()
 channels = sn.getChannels()
+guide = sn.getGuideData()
 abbr = None
-
-print options.id
-print channels
-print options.mso
 
 for channel in  channels:
 
@@ -39,8 +36,9 @@ for channel in  channels:
         if options.id == channel['id']:
             abbr = channel['abbr']
 
+    prog = guide[str(channel['id'])]
     print str(channel['id']) + ') ' + channel['name'] + ' (' + \
-          channel['abbr'] + ')'
+          channel['abbr'] + ') - ' + str(prog)
 
 if abbr:
     if not sn.authorize(options.user, options.password, options.mso):
