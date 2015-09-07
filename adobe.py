@@ -88,7 +88,7 @@ class AdobePass:
             resp = opener.open(self.PREAUTHORIZE_URI, value_str)
         except urllib2.URLError, e:
             print e.args
-            return False
+            return None
         Cookies.saveCookieJar(jar)
 
         resp_xml = resp.read()
@@ -127,7 +127,9 @@ class AdobePass:
                    'userMeta' : '1' }
 
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar),
+                                      urllib2.HTTPHandler(debuglevel=1),
+                                      urllib2.HTTPSHandler(debuglevel=1))
 
         opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
 
@@ -143,7 +145,12 @@ class AdobePass:
             print "Unable to authorise for channel '" + channel + "'"
             return False
 
-        dom = xml.dom.minidom.parseString(resp_xml)
+        try:
+            dom = xml.dom.minidom.parseString(resp_xml)
+        except:
+            print "Unable to parse device authorization xml."
+            print resp_xml
+            return False
 
         result_node = dom.getElementsByTagName('result')[0]
         tok_node = result_node.getElementsByTagName('authzToken')[0]

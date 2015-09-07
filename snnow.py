@@ -116,23 +116,38 @@ class SportsnetNow:
 
         # Get the MSO class from the 
         mso = MSOFactory.getMSO(msoName)
+        if mso == None:
+            print "Invalid MSO"
+            return None
+
 
         # Authorize with the MSO
-        mso.authorize(self, username, password)
+        if not mso.authorize(self, username, password):
+            return False
 
         ap = adobe.AdobePass()
-        ap.sessionDevice(self)
+
+        if not ap.sessionDevice(self):
+            print "Session device failed."
+            return False
 
         settings = Settings.instance().get(self.getRequestorID())
 
         result = ap.preAuthorize(self, ['SNEast', 'SNOne', 'SNOntario', 'SNWest',
                                         'SNPacific', 'SN360', 'SNWorld'])
 
+        if not result:
+            print "Preauthorize failed."
+            return False
 
-    def getChannel(self, id, name, msoName='Rogers'):
+        return True
+
+
+    def getChannel(self, id, name, msoName):
 
         ap = adobe.AdobePass()
         if not ap.authorizeDevice(self, msoName, name):
+            print "Authorize device failed"
             return None
         token = ap.deviceShortAuthorize(self, msoName)
 

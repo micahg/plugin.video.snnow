@@ -40,11 +40,14 @@ def createMainMenu():
         return
 
     sn.checkMSOs()
-    sn.authorize(creds['u'], creds['p'], creds['m'])
+    if not sn.authorize(creds['u'], creds['p'], creds['m']):
+        dialog = xbmcgui.Dialog()
+        dialog.ok(__language__(30004), __language__(30004))
+        xbmcplugin.endOfDirectory(handle = int(sys.argv[1]),
+                                  succeeded=False)
+
 
     channels = sn.getChannels()
-
-    print channels
     for channel in channels:
         values = { 'menu' : 'channel', 'name' : channel['name'],
                    'id' : channel['id'], 'abbr' : channel['abbr'] }
@@ -82,7 +85,8 @@ def createLiveMenu(values):
 
 def playChannel(values):
     sn = snnow.SportsnetNow()
-    stream = sn.getChannel(values['id'][0], values['abbr'][0])
+    mso = __settings__.getSetting("mso")
+    stream = sn.getChannel(values['id'][0], values['abbr'][0], mso)
     if not stream:
         dialog = xbmcgui.Dialog()
         dialog.ok(__language__(30004), __language__(30005))

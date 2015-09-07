@@ -1,3 +1,8 @@
+[B]Version 1.0.1[/B]
+
+- Add support for Shaw Go
+- Improved error handling
+
 [B]Version 1.0.0[/B]
 
 - Initial revision. Plays Sportsnet live streams.

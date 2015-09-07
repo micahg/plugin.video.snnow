@@ -11,6 +11,8 @@ parser.add_option('-p', '--password', type='string', dest='password',
                   help="Password for authentication")
 parser.add_option('-i', '--id', type='int', dest='id',
                   help="Channel ID")
+parser.add_option('-m', '--mso', type='string', dest='mso', default='Rogers',
+                  help="Multi-system operator (eg: Rogers)")
 
 (options, args) = parser.parse_args()
 
@@ -29,6 +31,7 @@ abbr = None
 
 print options.id
 print channels
+print options.mso
 
 for channel in  channels:
 
@@ -40,8 +43,10 @@ for channel in  channels:
           channel['abbr'] + ')'
 
 if abbr:
-    sn.authorize(options.user, options.password)
-    stream = sn.getChannel(options.id, abbr)
+    if not sn.authorize(options.user, options.password, options.mso):
+        sys.exit(1)
+    print "Authorization Complete."
+    stream = sn.getChannel(options.id, abbr, options.mso)
     if stream:
         print stream
     else:
