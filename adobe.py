@@ -116,7 +116,9 @@ class AdobePass:
         @param mso_id the MSO identifier (eg: 'Rogers')
         @param channel the channel identifier
         """
+        print "MICAH in authorizeDevice"
         settings = Settings.instance().get('adobe')
+        print "MICAH adobe settings are " + str(settings)
 
         values = { 'resource_id' : channel,
                    'requestor_id' : streamProvider.getRequestorID(),
@@ -126,9 +128,13 @@ class AdobePass:
                    'device_id' : streamProvider.getDeviceID(),
                    'userMeta' : '1' }
 
+        print "MICAH authorizeDevice values are " + str(values)
+
         jar = Cookies.getCookieJar()
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
         opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
+
+        print "MICAH calling '" + self.AUTHORIZE_URI + "'"
 
         try:
             resp = opener.open(self.AUTHORIZE_URI, urllib.urlencode(values))
@@ -136,6 +142,7 @@ class AdobePass:
             print e.args
             return False
         Cookies.saveCookieJar(jar)
+        print "MICAH DONE"
 
         resp_xml = resp.read()
         if resp_xml.find('notAuthorized') >= 0:
@@ -168,8 +175,9 @@ class AdobePass:
         @param mso_id the MSO identifier (eg: 'Rogers')
         @return the session token required to authorise video the stream
         """
+        print "MICAH in deviceShortAuthorize"
         settings = Settings.instance().get('adobe')
-
+        print "MICAH adobe settings are " + str(settings)
         values = { 'requestor_id' : streamProvider.getRequestorID(),
                    'signed_requestor_id' : streamProvider.getSignedRequestorID(),
                    'session_guid' : uuid.uuid4(),
@@ -177,18 +185,20 @@ class AdobePass:
                    'authz_token' : settings['AUTHZ_TOKEN'],
                    'mso_id' : mso_id,
                    'device_id' : streamProvider.getDeviceID() }
+        print "MICAH values are " + str(values)
 
         jar = Cookies.getCookieJar()
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
 
         opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
-
+        print "MICAH calling '" + self.DEVICE_SHORT_AUTHORIZE + "'" 
         try:
             resp = opener.open(self.DEVICE_SHORT_AUTHORIZE, urllib.urlencode(values))
         except urllib2.URLError, e:
             print e.args
             return ''
         Cookies.saveCookieJar(jar)
+        print "MICAH done"
 
         resp_xml = resp.read()
 

@@ -84,9 +84,12 @@ def createLiveMenu(values):
 
 
 def playChannel(values):
+    print "MICAH in playChannel"
     sn = snnow.SportsnetNow()
     mso = __settings__.getSetting("mso")
+    print "MICAH values = " + str(values)
     stream = sn.getChannel(values['id'][0], values['abbr'][0], mso)
+    print "MICAH stream is '" + stream + "'" 
     if not stream:
         dialog = xbmcgui.Dialog()
         dialog.ok(__language__(30004), __language__(30005))

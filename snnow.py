@@ -185,12 +185,15 @@ class SportsnetNow:
         @param the MSO name (eg: Rogers)
         """
         ap = adobe.AdobePass()
+        print "MICAH authorizing device"
         if not ap.authorizeDevice(self, msoName, name):
             print "Authorize device failed"
             return None
+        print "MICAH calling deviceShortAuthorize"
         token = ap.deviceShortAuthorize(self, msoName)
-
+        print "MICAH calling getPublishPoint"
         stream_uri = self.getPublishPoint(id, name, token)
+        print "MICAH publish point returns '" + stream_uri + "'"
         return stream_uri
 
 
@@ -200,22 +203,25 @@ class SportsnetNow:
         @param name the channel name
         @param token the token to authorize the stream
         """
+        print "MICAH in getPublishPoint"
         values = { 'id' : id,
                    'type' : 'channel',
                    'nt' : '1',
                    'aprid' : name,
                    'aptoken' : token }
+        print "MICAH publishPointValue are " + str(values)
 
         jar = Cookies.getCookieJar()
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
         opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
-
+        print "MICAH calling '" + self.PUBLISH_POINT + "'"
         try:
             resp = opener.open(self.PUBLISH_POINT, urllib.urlencode(values))
         except urllib2.URLError, e:
             print e.args
             return ''
         Cookies.saveCookieJar(jar)
+        print "MICAH DONE"
 
         result = json.loads(resp.read())
         return result['path']
