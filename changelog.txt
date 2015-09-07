@@ -2,6 +2,7 @@
 
 - Add support for Shaw Go
 - Improved error handling
+- Pull channel IDs from the API config instead of hard coding
 
 [B]Version 1.0.0[/B]
 

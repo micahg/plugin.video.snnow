@@ -1,4 +1,4 @@
-import urllib, urllib2, random, adobe, json
+import urllib, urllib2, random, adobe, json, xml.dom.minidom
 from msofactory import MSOFactory
 from cookies import Cookies
 from settings import Settings
@@ -83,6 +83,40 @@ class SportsnetNow:
         return None
 
 
+    def getChannelResourceMap(self):
+        """
+        Get the mapping from ID to channel abbreviation
+        """
+        settings = Settings.instance().get(self.getRequestorID())
+        chan_map = {}
+        if settings and 'CHAN_MAP' in settings.keys():
+            return settings['CHAN_MAP']
+
+        jar = Cookies.getCookieJar()
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
+
+        try:
+            resp = opener.open(self.CONFIG_URI)
+        except urllib2.URLError, e:
+            print e.args
+            return None
+        Cookies.saveCookieJar(jar)
+
+        config_xml = resp.read()
+        dom = xml.dom.minidom.parseString(config_xml)
+        result_node = dom.getElementsByTagName('result')[0]
+        map_node = result_node.getElementsByTagName('channelResourceMap')[0]
+        for chan_node in map_node.getElementsByTagName('channel'):
+            cid = chan_node.attributes['id']
+            abr = chan_node.attributes['resourceId']
+            chan_map[cid.value] = abr.value
+
+        Settings.instance().store(self.getRequestorID(), 'CHAN_MAP', chan_map)
+
+        return chan_map
+
+
     def getChannels(self):
         jar = Cookies.getCookieJar()
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
@@ -96,9 +130,11 @@ class SportsnetNow:
         Cookies.saveCookieJar(jar)
 
         channels = json.loads(resp.read())
+        channel_map = self.getChannelResourceMap()
 
         for channel in channels:
-            abbr = 'SN' + channel['seoName'][10:].capitalize()
+            chan_id =str(channel['id'])
+            abbr = channel_map[chan_id]
             channel['abbr'] = abbr
 
         Settings.instance().store(self.getRequestorID(), 'CHANNELS', channels)
@@ -131,10 +167,8 @@ class SportsnetNow:
             print "Session device failed."
             return False
 
-        settings = Settings.instance().get(self.getRequestorID())
-
-        result = ap.preAuthorize(self, ['SNEast', 'SNOne', 'SNOntario', 'SNWest',
-                                        'SNPacific', 'SN360', 'SNWorld'])
+        channels = self.getChannelResourceMap()
+        result = ap.preAuthorize(self, channels)
 
         if not result:
             print "Preauthorize failed."
@@ -144,7 +178,12 @@ class SportsnetNow:
 
 
     def getChannel(self, id, name, msoName):
-
+        """
+        Get the channel stream address.
+        @param id The channle id
+        @param name The channel name
+        @param the MSO name (eg: Rogers)
+        """
         ap = adobe.AdobePass()
         if not ap.authorizeDevice(self, msoName, name):
             print "Authorize device failed"
@@ -157,7 +196,7 @@ class SportsnetNow:
 
     def getPublishPoint(self, id, name, token):
         """
-        Get the stream address.
+        Get the stream address. Do not call directly.
         @param name the channel name
         @param token the token to authorize the stream
         """

@@ -76,8 +76,8 @@ class AdobePass:
                    'requestor_id' : streamProvider.getRequestorID() }
 
         value_str = urllib.urlencode(values)
-        for resource_id in resource_ids:
-            value_str += '&' + urllib.urlencode({ 'resource_id' : resource_id })
+        for k in resource_ids.keys():
+            value_str += '&' + urllib.urlencode({ 'resource_id' : resource_ids[k] })
 
         jar = Cookies.getCookieJar()
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
@@ -127,10 +127,7 @@ class AdobePass:
                    'userMeta' : '1' }
 
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar),
-                                      urllib2.HTTPHandler(debuglevel=1),
-                                      urllib2.HTTPSHandler(debuglevel=1))
-
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
         opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
 
         try:
