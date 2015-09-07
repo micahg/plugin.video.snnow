@@ -62,6 +62,13 @@ def createMainMenu():
                 title += ' - [I]' + prog['title'] + '[/I]'
             title += ')'
         live = xbmcgui.ListItem(title)
+        labels = {"TVShowTitle" : prog['tvshowtitle'],
+                  "Studio" : channel['name']}
+        if 'title' in values:
+            labels['Title'] = prog['title']
+        if 'plot' in values:
+            labels["Plot"] = prog['plot']
+        live.setInfo(type="Video", infoLabels=labels)
         xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
                                     url=sys.argv[0] + "?" + urllib.urlencode(values),
                                     listitem=live,
@@ -103,13 +110,12 @@ def playChannel(values):
         name = values['name'][0]
         li = xbmcgui.ListItem(name)
 
-        labels = {"title" : values['tvshowtitle'][0],
-                  "studio" : values['name'][0]}
+        labels = {"TVShowTitle" : values['tvshowtitle'][0],
+                  "Studio" : values['name'][0]}
         if 'title' in values:
-            labels['title'] = values['title'][0]
+            labels['Title'] = values['title'][0]
         if 'plotoutline' in values:
-            labels["plotoutline"] = values['plotoutline'][0]
-        print "MICAH labels = " + str(labels)
+            labels["Plot"] = values['plot'][0]
         li.setInfo(type="Video", infoLabels=labels)
         p = xbmc.Player()
         p.play(stream, li)
