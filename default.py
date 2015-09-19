@@ -72,7 +72,7 @@ def createMainMenu():
         xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
                                     url=sys.argv[0] + "?" + urllib.urlencode(values),
                                     listitem=live,
-                                    isFolder=False)
+                                    isFolder=True)
 
     # signal the end of the directory
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
@@ -119,9 +119,6 @@ def playChannel(values):
         li.setInfo(type="Video", infoLabels=labels)
         p = xbmc.Player()
         p.play(stream, li)
-
-    # signal the end of the directory
-    xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
 
 if len(sys.argv[2]) == 0:
