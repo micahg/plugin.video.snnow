@@ -1,4 +1,4 @@
-import rogers, shawgo, telus, cogeco
+import rogers, shawgo, telus
 
 class MSOFactory:
 
@@ -15,7 +15,5 @@ class MSOFactory:
             return shawgo.ShawGo()
         elif name == "Telus":
             return telus.Telus()
-        elif name == "Cogeco":
-            return cogeco.Cogeco()
 
         return None
