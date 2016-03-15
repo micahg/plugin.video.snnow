@@ -1,3 +1,9 @@
+[B]Version 1.0.3[/B]
+
+- Fix guide data crash (thanks to portse) 
+- Fix timezones outside of GMT-5
+- Fix folder structure
+
 [B]Version 1.0.2[/B]
 
 - Add support for Telus
@@ -13,3 +19,4 @@
 [B]Version 1.0.0[/B]
 
 - Initial revision. Plays Sportsnet live streams.
+p
