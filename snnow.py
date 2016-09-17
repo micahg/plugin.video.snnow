@@ -169,10 +169,16 @@ class SportsnetNow:
                 except:
                     title = curr_item.attributes['e']
                 episode = curr_item.attributes['e']
-                description = curr_item.attributes['ed']
+                
+                try:
+                    description = curr_item.attibutes['ed']
+                    show['plot'] = description.value.encode('utf-8').strip().decode('utf-8')
+                except:
+                    show['plot'] = 'No description found'
+                
                 show['tvshowtitle'] = title.value.encode('utf-8').strip().decode('utf-8')
                 show['title'] = episode.value.encode('utf-8').strip().decode('utf-8')
-                show['plot'] = description.value.encode('utf-8').strip().decode('utf-8')
+                
                 guide[cid] = show
 
         return guide
