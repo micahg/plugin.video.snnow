@@ -1,8 +1,18 @@
-[B]Version 1.0.9[/B
+[B]Version 1.17.11[/B]
+
+- Fix Cogeco authentication (github.com/graterje)
+- Update for Krypton broken HLS
+- Add stream bitrate selection
+
+[B]Version 1.0.10[/B]
+
+- Fix Shaw GO authentication (github.com/dwaynez)
+
+[B]Version 1.0.9[/B]
 
 - Fix Cogeco authentication (github.com/portse)
 
-[B]Version 1.0.8[/B
+[B]Version 1.0.8[/B]
 
 - Fix Shaw GO authentication.
 
