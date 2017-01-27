@@ -1,6 +1,8 @@
-[B]Version 1.0.11[/B]
+[B]Version 1.17.11[/B]
 
 - Fix Cogeco authentication (github.com/graterje)
+- Update for Krypton broken HLS
+- Add stream bitrate selection
 
 [B]Version 1.0.10[/B]
 
