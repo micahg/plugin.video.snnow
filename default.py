@@ -120,11 +120,11 @@ def playChannel(values):
     index = xbmcgui.Dialog().select("Select Bitrate", bitrates)
 
     if index < 0:
+        dialog = xbmcgui.Dialog()
+        dialog.ok(__language__(30004), __language__(30005))
         return
-    
+
     stream = streams[bitrates[index]]
-    
-    print stream
 
     if not stream:
         dialog = xbmcgui.Dialog()
