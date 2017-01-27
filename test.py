@@ -52,5 +52,6 @@ if abbr:
     print stream
 
     streams = sn.parsePlaylist(stream)
-    for key in reversed(sorted(streams.keys())):
-        print key + ':' + streams[key]
+    bitrates = [int(x) for x in streams.keys()]
+    for bitrate in reversed(sorted(bitrates)):
+        print str(bitrate) + ':' + streams[str(bitrate)]

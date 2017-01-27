@@ -310,31 +310,28 @@ class SportsnetNow:
         """
         Parse the playlist and split it by bitrate.
         """
+        streams = {}
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib2.build_opener()
         opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
 
         try:
             resp = opener.open(url)
         except urllib2.URLError, e:
             print e.args
-            return ''
+            return streams
         except urllib2.HTTPError, e:
             print e.getcode()
-            return ''
+            return streams
         Cookies.saveCookieJar(jar)
 
         m3u8 = resp.read();
 
         url = urlparse(url)
-        print url
-        print url.path.rfind('/')
         prefix = url.scheme + "://" + url.netloc + url.path[:url.path.rfind('/')+1]
         suffix = '?' + url.params + url.query + url.fragment
-        print "PREFIX " + prefix
-        print "SUFFIX " + suffix
         lines = m3u8.split('\n')
-        streams = {}
+
         bandwidth = ""
         for line in lines:
             if line == "#EXTM3U":
