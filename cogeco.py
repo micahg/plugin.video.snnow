@@ -1,5 +1,6 @@
 import urllib, urllib2, re
 from cookies import Cookies
+from HTMLParser import HTMLParser
 
 class Cogeco:
     """
@@ -37,7 +38,8 @@ class Cogeco:
             return None
         Cookies.saveCookieJar(jar)
 
-        html = resp.read()
+        h = HTMLParser()
+        html = h.unescape(resp.read())
 
         # TODO: this could be made a function to to parse and return the value based on an expression
         action = re.search('<form.*?action=\"(.*?)\"', html, re.MULTILINE)
