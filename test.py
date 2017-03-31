@@ -13,6 +13,8 @@ parser.add_option('-i', '--id', type='int', dest='id',
                   help="Channel ID")
 parser.add_option('-m', '--mso', type='string', dest='mso', default='Rogers',
                   help="Multi-system operator (eg: Rogers)")
+parser.add_option('-f', '--ffplay', action="store_true", dest='ffplay',
+                  help='Choose a stream and get it ready for ffplay')
 
 (options, args) = parser.parse_args()
 
@@ -48,8 +50,24 @@ if abbr:
     if not stream:
         print "Unable to get stream"
         sys.exit(0)
+    print stream
 
-    streams = sn.parsePlaylist(stream)
+    cookies = []
+    streams = sn.parsePlaylist(stream, cookies)
+    print cookies
     bitrates = [int(x) for x in streams.keys()]
+    
+    stream = None
     for bitrate in reversed(sorted(bitrates)):
-        print str(bitrate) + ':' + streams[str(bitrate)]
+        if stream == None:
+            stream = streams[str(bitrate)]
+    
+    if not options.ffplay == None:
+        fstream = ""
+        #fstream += ' -user_agent "' + sn.USER_AGENT + '"'
+        fstream += ' -cookies "'
+        for cookie in cookies:
+            fstream += cookie
+        fstream.strip()
+        fstream += '" "' + stream.split('|')[0] + '"' 
+        print fstream

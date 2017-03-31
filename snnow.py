@@ -11,10 +11,11 @@ class SportsnetNow:
         Initialize the sportsnet class
         """
         self.CONFIG_URI = 'http://nlmobile.cdnak.neulion.com/sportsnetnow/config/config_ios_r3.xml'
-        self.CHANNELS_URI = 'http://now.sportsnet.ca/service/channels?format=json'
+        self.CHANNELS_URI = 'https://now.sportsnet.ca/service/channels?format=json'
         self.AUTHORIZED_MSO_URI = 'https://sp.auth.adobe.com/adobe-services/1.0/config/SportsnetNow'
         self.PUBLISH_POINT = 'https://now.sportsnet.ca/service/publishpoint?'
         self.USER_AGENT = 'Mozilla/5.0 (iPad; CPU OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12F69 ipad sn now 4.0912'
+        #self.USER_AGENT = 'Mozilla/5.0 (Linux; Android 6.0.1; ONE A2005 Build/MMB29M; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/56.0.2924.87 Mobile Safari/537.36 sportsnet 2.5.1'
         self.EPG_PREFIX = 'http://smb.cdnak.nyc.neulion.com/u/smb/sportsnetnow/configs/epg/'
 
     @staticmethod
@@ -306,13 +307,15 @@ class SportsnetNow:
         result = json.loads(resp.read())
         return result['path']
 
-    def parsePlaylist(self, url):
+    def parsePlaylist(self, url, raw_cookies):
         """
         Parse the playlist and split it by bitrate.
         """
         streams = {}
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener()
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar),
+                                      urllib2.HTTPHandler(debuglevel=1),
+                                      urllib2.HTTPSHandler(debuglevel=1))
         opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
 
         try:
@@ -324,6 +327,15 @@ class SportsnetNow:
             print e.getcode()
             return streams
         Cookies.saveCookieJar(jar)
+
+        cookies = []
+        for header in resp.info().headers:
+            if header[:10] == 'Set-Cookie':
+                cookie = header[12:]
+                raw_cookies.append(cookie)
+                idx = cookie.index('; ')
+                cookie = cookie[:idx]
+                cookies.append(urllib.quote(cookie))
 
         m3u8 = resp.read();
 
@@ -344,6 +356,9 @@ class SportsnetNow:
                     print "Unable to parse bandwidth"
             elif line[-5:] == ".m3u8":
                 
-                streams[bandwidth] = prefix + line + suffix
+                stream = prefix + line + "|User-Agent=" + urllib.quote(self.USER_AGENT) + "&Cookie="
+                for cookie in cookies:
+                    stream += cookie + "; "
+                streams[bandwidth] = stream
 
         return streams

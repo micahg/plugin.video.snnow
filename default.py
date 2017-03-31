@@ -116,7 +116,7 @@ def playChannel(values):
     # here get the streams
     bitrates = [int(x) for x in streams.keys()]
     bitrates = [str(x) for x in reversed(sorted(bitrates)) ]
-    print bitrates
+
     index = xbmcgui.Dialog().select("Select Bitrate", bitrates)
 
     if index < 0:
