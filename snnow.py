@@ -312,10 +312,8 @@ class SportsnetNow:
         Parse the playlist and split it by bitrate.
         """
         streams = {}
-        jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar),
-                                      urllib2.HTTPHandler(debuglevel=1),
-                                      urllib2.HTTPSHandler(debuglevel=1))
+        #jar = Cookies.getCookieJar()
+        opener = urllib2.build_opener()
         opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
 
         try:
@@ -326,7 +324,6 @@ class SportsnetNow:
         except urllib2.HTTPError, e:
             print e.getcode()
             return streams
-        Cookies.saveCookieJar(jar)
 
         cookies = []
         for header in resp.info().headers:

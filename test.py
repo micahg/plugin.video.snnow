@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import sys, snnow
+import sys, snnow, os
 from cookies import Cookies
 from optparse import OptionParser
 
@@ -50,7 +50,6 @@ if abbr:
     if not stream:
         print "Unable to get stream"
         sys.exit(0)
-    print stream
 
     cookies = []
     streams = sn.parsePlaylist(stream, cookies)
@@ -64,10 +63,11 @@ if abbr:
     
     if not options.ffplay == None:
         fstream = ""
-        #fstream += ' -user_agent "' + sn.USER_AGENT + '"'
         fstream += ' -cookies "'
         for cookie in cookies:
             fstream += cookie
-        fstream.strip()
+        
         fstream += '" "' + stream.split('|')[0] + '"' 
-        print fstream
+        command = "ffplay " + fstream
+        print command
+        os.system(command)
