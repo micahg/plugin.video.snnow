@@ -1,8 +1,10 @@
-import urllib, urllib2, random, time, datetime, adobe, json, xml.dom.minidom, re
+import urllib, urllib2, random, time, datetime, json, xml.dom.minidom, re
+from adobe import AdobePass
 from msofactory import MSOFactory
 from cookies import Cookies
-from settings import Settings
+from settings import Settings, log
 from urlparse import urlparse
+
 
 class SportsnetNow:
 
@@ -10,7 +12,7 @@ class SportsnetNow:
         """
         Initialize the sportsnet class
         """
-        self.CONFIG_URI = 'http://nlmobile.cdnak.neulion.com/sportsnetnow/config/config_ios_r3.xml'
+        self.CONFIG_URI = 'https://static.rogersdigitalmedia.com/sportsnet-mobile-app/config.json'
         self.CHANNELS_URI = 'https://now.sportsnet.ca/service/channels?format=json'
         self.AUTHORIZED_MSO_URI = 'https://sp.auth.adobe.com/adobe-services/1.0/config/SportsnetNow'
         self.PUBLISH_POINT = 'https://now.sportsnet.ca/service/publishpoint?'
@@ -49,7 +51,6 @@ class SportsnetNow:
             dev_id = settings['DEV_ID']
 
         if not dev_id:
-            print "id is empty joining crap"
             dev_id = ''.join(random.choice('0123456789abcdef') for _ in range(64))
             Settings.instance().store(self.getRequestorID(), 'DEV_ID', dev_id)
 
@@ -86,39 +87,6 @@ class SportsnetNow:
         return None
 
 
-    def getChannelResourceMap(self):
-        """
-        Get the mapping from ID to channel abbreviation
-        """
-        settings = Settings.instance().get(self.getRequestorID())
-        chan_map = {}
-        if settings and 'CHAN_MAP' in settings.keys():
-            return settings['CHAN_MAP']
-
-        jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
-        opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
-
-        try:
-            resp = opener.open(self.CONFIG_URI)
-        except urllib2.URLError, e:
-            print e.args
-            return None
-        Cookies.saveCookieJar(jar)
-
-        config_xml = resp.read()
-        dom = xml.dom.minidom.parseString(config_xml)
-        result_node = dom.getElementsByTagName('result')[0]
-        map_node = result_node.getElementsByTagName('channelResourceMap')[0]
-        for chan_node in map_node.getElementsByTagName('channel'):
-            cid = chan_node.attributes['id']
-            abr = chan_node.attributes['resourceId']
-            chan_map[cid.value] = abr.value
-
-        Settings.instance().store(self.getRequestorID(), 'CHAN_MAP', chan_map)
-
-        return chan_map
-
     def getServerTime(self):
         """
         Convert the local time to GMT-5, the timezone in which the guide data is
@@ -129,6 +97,7 @@ class SportsnetNow:
         delta = gmt_time - loc_time
         delta = datetime.timedelta(seconds = delta.seconds - 18000)
         return datetime.datetime.now() + delta
+
 
     def getGuideData(self):
         """
@@ -187,27 +156,25 @@ class SportsnetNow:
 
 
     def getChannels(self):
+        settings = Settings.instance().get(self.getRequestorID())
+        if settings and 'CHANNELS' in settings.keys():
+            return settings['CHANNELS']
+
         jar = Cookies.getCookieJar()
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
         opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
 
         try:
-            resp = opener.open(self.CHANNELS_URI)
+            resp = opener.open(self.CONFIG_URI)
         except urllib2.URLError, e:
             print e.args
             return None
         Cookies.saveCookieJar(jar)
 
-        channels = json.loads(resp.read())
-        channel_map = self.getChannelResourceMap()
-
-        for channel in channels:
-            chan_id =str(channel['id'])
-            abbr = channel_map[chan_id]
-            channel['abbr'] = abbr
-
+        config_js = resp.read()
+        config = json.loads(config_js)
+        channels = config['adobepass_details']['channels']
         Settings.instance().store(self.getRequestorID(), 'CHANNELS', channels)
-
         return channels
 
 
@@ -230,22 +197,25 @@ class SportsnetNow:
             print "Failed to authorize with MSO"
             return False
 
-        channels = self.getChannelResourceMap()
+        channels = self.getChannels()
         if mso.getID() == 'Sportsnet':
             return True
 
-        ap = adobe.AdobePass()
-
-        if not ap.sessionDevice(self):
+        if not AdobePass.sessionDevice(self):
             print "Session device failed."
             return False
 
-        result = ap.preAuthorize(self, channels)
+        result = AdobePass.preAuthorize(self, channels)
         if not result:
             print "Preauthorize failed."
             return False
 
         return True
+
+
+    def logout(self):
+        # delete token from settings
+        return None
 
 
     def getChannel(self, id, name, msoName):
@@ -261,18 +231,15 @@ class SportsnetNow:
             return None
 
         mso_id = mso.getID()
-
-        if mso_id == 'Sportsnet':
-            token = None
-        else:
-            ap = adobe.AdobePass()
+        token = None
+        if mso_id != 'Sportsnet':
+            ap = AdobePass()
             if not ap.authorizeDevice(self, mso_id, name):
                 print "Authorize device failed"
                 return None
-            token = ap.deviceShortAuthorize(self, msoName)
 
-        stream_uri = self.getPublishPoint(id, name, token)
-        return stream_uri
+            token = AdobePass.deviceShortAuthorize(self, msoName)
+        return self.getPublishPoint(id, name, token)
 
 
     def getPublishPoint(self, id, name, token):
@@ -296,23 +263,27 @@ class SportsnetNow:
 
         try:
             resp = opener.open(self.PUBLISH_POINT, urllib.urlencode(values))
-        except urllib2.URLError, e:
-            print e.args
-            return ''
-        except urllib2.HTTPError, e:
-            print e.getcode()
-            return ''
+        except urllib2.HTTPError as err:
+            log("getPublishPoint {0}: '{1}'".format(err.code, err.reason), True)
+            resp = err.read()
+            log("getPublishPoint returns '{0}'".format(resp))
+            return None
+        except urllib2.URLError as err:
+            log("getPublishPoint: '{0}'".format(err.reason), True)
+            return None
+
         Cookies.saveCookieJar(jar)
 
-        result = json.loads(resp.read())
+        js_str = resp.read()
+        result = json.loads(js_str)
         return result['path']
 
-    def parsePlaylist(self, url, raw_cookies):
+
+    def parsePlaylist(self, url, raw_cookies = None):
         """
         Parse the playlist and split it by bitrate.
         """
         streams = {}
-        #jar = Cookies.getCookieJar()
         opener = urllib2.build_opener()
         opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
 
@@ -325,20 +296,20 @@ class SportsnetNow:
             print e.getcode()
             return streams
 
+        cookie_str = ''
         cookies = []
         for header in resp.info().headers:
             if header[:10] == 'Set-Cookie':
                 cookie = header[12:]
-                raw_cookies.append(cookie)
-                idx = cookie.index('; ')
-                cookie = cookie[:idx]
-                cookies.append(urllib.quote(cookie))
+                cookie_str += urllib.quote(cookie.strip() + '\n' )
+                if raw_cookies != None:
+                    raw_cookies.append(cookie)
+                cookies.append(cookie.strip())
 
         m3u8 = resp.read();
 
         url = urlparse(url)
         prefix = url.scheme + "://" + url.netloc + url.path[:url.path.rfind('/')+1]
-        suffix = '?' + url.params + url.query + url.fragment
         lines = m3u8.split('\n')
 
         bandwidth = ""
@@ -346,16 +317,22 @@ class SportsnetNow:
             if line == "#EXTM3U":
                 continue
             if line[:17] == '#EXT-X-STREAM-INF':
-                bandwidth = re.search(".*,?BANDWIDTH\=(.*),?", line)
+                bandwidth = re.search(".*,?BANDWIDTH\=(.*?),", line)
                 if bandwidth:
                     bandwidth = bandwidth.group(1)
                 else:
                     print "Unable to parse bandwidth"
             elif line[-5:] == ".m3u8":
-                
-                stream = prefix + line + "|User-Agent=" + urllib.quote(self.USER_AGENT) + "&Cookie="
+
+                stream = prefix + line + "|User-Agent={0}".format(urllib.quote(self.USER_AGENT))
+                """cookie_num = 0
                 for cookie in cookies:
-                    stream += cookie + "; "
+                    stream += "&Cookie{0}={1}".format(str(cookie_num), urllib.quote(cookie))
+                    cookie_num += 1
+                streams[bandwidth] = stream
+                """
+                stream = prefix + line + "|User-Agent={0}&Cookies={1}"
+                stream = stream.format(urllib.quote(self.USER_AGENT),cookie_str)
                 streams[bandwidth] = stream
 
         return streams

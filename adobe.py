@@ -2,21 +2,17 @@ import urllib, urllib2, xml.dom.minidom, settings, uuid
 from settings import Settings
 from cookies import Cookies
 
+
 class AdobePass:
 
+    SESSION_DEVICE_URI = 'https://sp.auth.adobe.com/adobe-services/1.0/sessionDevice'
+    PREAUTHORIZE_URI = 'https://sp.auth.adobe.com/adobe-services/1.0/preauthorize'
+    AUTHORIZE_URI = 'https://sp.auth.adobe.com/adobe-services/1.0/authorizeDevice'
+    DEVICE_SHORT_AUTHORIZE = 'https://sp.auth.adobe.com/adobe-services/1.0/deviceShortAuthorize'
+    USER_AGENT = 'AdobePassNativeClient/1.8 (iPad; U; CPU iPad OS 8.3 like Mac OS X; en-us)'
 
-    def __init__(self):
-        """
-        Initialise the adobe pass.
-        """
-        self.SESSION_DEVICE_URI = 'https://sp.auth.adobe.com/adobe-services/1.0/sessionDevice'
-        self.PREAUTHORIZE_URI = 'https://sp.auth.adobe.com/adobe-services/1.0/preauthorize'
-        self.AUTHORIZE_URI = 'https://sp.auth.adobe.com/adobe-services/1.0/authorizeDevice'
-        self.DEVICE_SHORT_AUTHORIZE = 'https://sp.auth.adobe.com/adobe-services/1.0/deviceShortAuthorize'
-        self.USER_AGENT = 'AdobePassNativeClient/1.8 (iPad; U; CPU iPad OS 8.3 like Mac OS X; en-us)'
-
-
-    def sessionDevice(self, streamProvider):
+    @staticmethod
+    def sessionDevice(streamProvider):
         """
         Session Device.
         """
@@ -31,11 +27,11 @@ class AdobePass:
                    '_method' : 'GET',
                    'device_id' : streamProvider.getDeviceID()}
 
-        opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
+        opener.addheaders = [('User-Agent', urllib.quote(AdobePass.USER_AGENT))]
 
 
         try:
-            resp = opener.open(self.SESSION_DEVICE_URI, urllib.urlencode(values))
+            resp = opener.open(AdobePass.SESSION_DEVICE_URI, urllib.urlencode(values))
         except urllib2.URLError, e:
             print e.args
             return False
@@ -59,8 +55,8 @@ class AdobePass:
         return True
 
 
-
-    def preAuthorize(self, streamProvider, resource_ids):
+    @staticmethod
+    def preAuthorize(streamProvider, channels):
         """
         Pre-authroize.  This _should_ get a list of authorised channels.
 
@@ -76,16 +72,16 @@ class AdobePass:
                    'requestor_id' : streamProvider.getRequestorID() }
 
         value_str = urllib.urlencode(values)
-        for k in resource_ids.keys():
-            value_str += '&' + urllib.urlencode({ 'resource_id' : resource_ids[k] })
+        for channel in channels:
+            value_str += '&' + urllib.urlencode({ 'resource_id' : channel['id'] })
 
         jar = Cookies.getCookieJar()
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
 
-        opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
+        opener.addheaders = [('User-Agent', urllib.quote(AdobePass.USER_AGENT))]
 
         try:
-            resp = opener.open(self.PREAUTHORIZE_URI, value_str)
+            resp = opener.open(AdobePass.PREAUTHORIZE_URI, value_str)
         except urllib2.URLError, e:
             print e.args
             return None
@@ -106,8 +102,8 @@ class AdobePass:
 
         return resources
 
-
-    def authorizeDevice(self, streamProvider, mso_id, channel):
+    @staticmethod
+    def authorizeDevice(streamProvider, mso_id, channel):
         """
         Authorise the device for a particular channel.
 
@@ -128,10 +124,10 @@ class AdobePass:
 
         jar = Cookies.getCookieJar()
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
-        opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
+        opener.addheaders = [('User-Agent', urllib.quote(AdobePass.USER_AGENT))]
 
         try:
-            resp = opener.open(self.AUTHORIZE_URI, urllib.urlencode(values))
+            resp = opener.open(AdobePass.AUTHORIZE_URI, urllib.urlencode(values))
         except urllib2.URLError, e:
             print e.args
             return False
@@ -153,13 +149,22 @@ class AdobePass:
 
         token = tok_node.firstChild.nodeValue
 
-        s = Settings.instance()
-        s.store('adobe', 'AUTHZ_TOKEN', token)
+        s = Settings.instance().store('adobe', 'AUTHZ_TOKEN', token)
 
         return True
 
+    @staticmethod
+    def getAuthnToken():
+        settings = Settings.instance().get('adobe')
+        if settings == None:
+            return None
+        if not 'AUTHN_TOKEN' in settings:
+            return None
+        return settings['AUTHN_TOKEN']
 
-    def deviceShortAuthorize(self, streamProvider, mso_id):
+
+    @staticmethod
+    def deviceShortAuthorize(streamProvider, mso_id):
         """
         Authorise for a particular channel... a second time.
         @param streamProvider the stream provider (eg: the SportsnetNow
@@ -180,10 +185,10 @@ class AdobePass:
         jar = Cookies.getCookieJar()
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
 
-        opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
+        opener.addheaders = [('User-Agent', urllib.quote(AdobePass.USER_AGENT))]
 
         try:
-            resp = opener.open(self.DEVICE_SHORT_AUTHORIZE, urllib.urlencode(values))
+            resp = opener.open(AdobePass.DEVICE_SHORT_AUTHORIZE, urllib.urlencode(values))
         except urllib2.URLError, e:
             print e.args
             return ''

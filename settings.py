@@ -1,5 +1,13 @@
 import os, json
 
+def log(msg, error = False):
+    try:
+        import xbmc
+        full_msg = "plugin.video.mlslive: {0}".format(msg)
+        xbmc.log(full_msg, level=xbmc.LOGERROR if error else xbmc.LOGINFO)
+    except:
+        print msg
+
 class Settings:
 
     def __init__(self):
