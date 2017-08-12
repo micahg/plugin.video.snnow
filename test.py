@@ -3,6 +3,7 @@ import sys, snnow, os
 from cookies import Cookies
 from optparse import OptionParser
 from adobe import AdobePass
+from wildvine import Wildvine
 
 # parse the options
 parser = OptionParser()
@@ -40,30 +41,12 @@ if abbr:
         sys.exit(1)
 
     stream = sn.getChannel(options.id, abbr, options.mso)
-    if not stream:
-        print "Unable to get stream"
-        sys.exit(0)
+    token = stream['token']
+    stream = stream['stream']
 
-    cookies = []
-    streams = sn.parsePlaylist(stream, cookies)
-    bitrates = [int(x) for x in streams.keys()]
+    print 'Stream is {}\nToken is {}'.format(stream, token)
     
-    stream = None
-    for bitrate in reversed(sorted(bitrates)):
-        if stream == None:
-            stream = streams[str(bitrate)]
-
-    print stream
-
-    if not options.ffplay == None:
-        fstream = ""
-        fstream += ' -cookies "'
-        for cookie in cookies:
-            fstream += cookie
-        
-        fstream += '" "' + stream.split('|')[0] + '"' 
-        command = "ffplay " + fstream
-        os.system(command)
+    Wildvine.first(token)
 else:
     for channel in  channels:
         prog = guide[str(channel['neulion_id'])]

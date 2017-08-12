@@ -1,15 +1,16 @@
-import urllib, urllib2, xml.dom.minidom, settings, uuid
+import urllib, urllib2, xml.dom.minidom, uuid
 from settings import Settings
 from cookies import Cookies
 
 
 class AdobePass:
 
-    SESSION_DEVICE_URI = 'https://sp.auth.adobe.com/adobe-services/1.0/sessionDevice'
+    CONFIG_URI = 'https://sp.auth.adobe.com/adobe-services/config/SportsnetNowCA'
+    SESSION_DEVICE_URI = 'https://sp.auth.adobe.com/adobe-services/sessionDevice'
     PREAUTHORIZE_URI = 'https://sp.auth.adobe.com/adobe-services/1.0/preauthorize'
     AUTHORIZE_URI = 'https://sp.auth.adobe.com/adobe-services/1.0/authorizeDevice'
     DEVICE_SHORT_AUTHORIZE = 'https://sp.auth.adobe.com/adobe-services/1.0/deviceShortAuthorize'
-    USER_AGENT = 'AdobePassNativeClient/1.8 (iPad; U; CPU iPad OS 8.3 like Mac OS X; en-us)'
+    USER_AGENT = 'AdobePassNativeClient/1.9.2 (Linux; U; Android 7.1.2; en-us)'
 
     @staticmethod
     def sessionDevice(streamProvider):
@@ -21,14 +22,12 @@ class AdobePass:
                                       #urllib2.HTTPHandler(debuglevel=1),
                                       #urllib2.HTTPSHandler(debuglevel=1))
 
-
         values = { 'requestor_id' : streamProvider.getRequestorID(),
                    'signed_requestor_id' : streamProvider.getSignedRequestorID(),
                    '_method' : 'GET',
                    'device_id' : streamProvider.getDeviceID()}
 
-        opener.addheaders = [('User-Agent', urllib.quote(AdobePass.USER_AGENT))]
-
+        opener.addheaders = [('User-Agent', AdobePass.USER_AGENT)]
 
         try:
             resp = opener.open(AdobePass.SESSION_DEVICE_URI, urllib.urlencode(values))
@@ -78,7 +77,7 @@ class AdobePass:
         jar = Cookies.getCookieJar()
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
 
-        opener.addheaders = [('User-Agent', urllib.quote(AdobePass.USER_AGENT))]
+        opener.addheaders = [('User-Agent', AdobePass.USER_AGENT)]
 
         try:
             resp = opener.open(AdobePass.PREAUTHORIZE_URI, value_str)
@@ -124,7 +123,7 @@ class AdobePass:
 
         jar = Cookies.getCookieJar()
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
-        opener.addheaders = [('User-Agent', urllib.quote(AdobePass.USER_AGENT))]
+        opener.addheaders = [('User-Agent', AdobePass.USER_AGENT)]
 
         try:
             resp = opener.open(AdobePass.AUTHORIZE_URI, urllib.urlencode(values))
@@ -185,7 +184,7 @@ class AdobePass:
         jar = Cookies.getCookieJar()
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
 
-        opener.addheaders = [('User-Agent', urllib.quote(AdobePass.USER_AGENT))]
+        opener.addheaders = [('User-Agent', AdobePass.USER_AGENT)]
 
         try:
             resp = opener.open(AdobePass.DEVICE_SHORT_AUTHORIZE, urllib.urlencode(values))

@@ -83,36 +83,31 @@ def createMainMenu():
 
 def playChannel(values):
     mso = __settings__.getSetting("mso")
-    streams = getChannelStream(values['id'][0], values['abbr'][0], mso)
+    stream = getChannelStream(values['id'][0], values['abbr'][0], mso)
+    token = stream['token']
+    stream = stream['stream']
 
-    # here get the streams
-    bitrates = [int(x) for x in streams.keys()]
-    bitrates = [str(x) for x in reversed(sorted(bitrates)) ]
+    name = values['name'][0]
+    li = xbmcgui.ListItem(name)
 
-    index = xbmcgui.Dialog().select("Select Bitrate", bitrates)
+    labels = {"TVShowTitle" : values['tvshowtitle'][0],
+              "Studio" : values['name'][0]}
+    if 'title' in values:
+        labels['Title'] = values['title'][0]
+    if 'plotoutline' in values:
+        labels["Plot"] = values['plot'][0]
+    li.setInfo(type="Video", infoLabels=labels)
+    # the following 4 lines borrowed from DAZN
+    li.setMimeType('application/dash+xml')
+    li.setProperty('inputstreamaddon', 'inputstream.adaptive')
+    li.setProperty('inputstream.adaptive.manifest_type', 'mpd')
+    li.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
+    li.setProperty('inputstream.adaptive.license_key', 'https://prod-lic2widevine.sd-ngp.net/proxy')
+    #lic_srv = 'https://prod-lic2widevine.sd-ngp.net/proxy|authorization=bearer {}|{}|'.format(token, stream)
 
-    if index < 0:
-        dialog = xbmcgui.Dialog()
-        dialog.ok(__language__(30004), __language__(30005))
-        return
-
-    stream = streams[bitrates[index]]
-    if not stream:
-        dialog = xbmcgui.Dialog()
-        dialog.ok(__language__(30004), __language__(30005))
-    else:
-        name = values['name'][0]
-        li = xbmcgui.ListItem(name)
-
-        labels = {"TVShowTitle" : values['tvshowtitle'][0],
-                  "Studio" : values['name'][0]}
-        if 'title' in values:
-            labels['Title'] = values['title'][0]
-        if 'plotoutline' in values:
-            labels["Plot"] = values['plot'][0]
-        li.setInfo(type="Video", infoLabels=labels)
-        p = xbmc.Player()
-        p.play(stream, li)
+    #li.setProperty('inputstream.adaptive.license_key', stream['token'])
+    p = xbmc.Player()
+    p.play(stream, li)
 
 
 def getChannelStream(channelId, channelName, msoName):
@@ -124,7 +119,8 @@ def getChannelStream(channelId, channelName, msoName):
         creds = getAuthCredentials()
         if sn.authorize(creds['u'], creds['p'], creds['m']):
             return sn.getChannel(channelId, channelName, msoName)
-    return sn.parsePlaylist(stream)
+    #return sn.parsePlaylist(stream)
+    return stream
 
 if len(sys.argv[2]) == 0:
 

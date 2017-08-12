@@ -43,15 +43,21 @@ class Rogers:
         if not viewstate:
             return None
 
+        viewstategen = re.search('<input.*__VIEWSTATEGENERATOR.*?value=\"(.*?)\".*?>', html, re.MULTILINE)
+        if not viewstategen:
+            return None
+
         validation = re.search('<input.*__EVENTVALIDATION.*?value=\"(.*?)\".*?>', html, re.MULTILINE)
         if not validation:
             return None
 
-        return Rogers.getOAuthToken(username, password, viewstate.group(1), validation.group(1), resp.url)
+        return Rogers.getOAuthToken(username, password, viewstate.group(1),
+                                    viewstategen.group(1), validation.group(1),
+                                    resp.url)
 
 
     @staticmethod
-    def getOAuthToken(username, password, viewstate, validation, url):
+    def getOAuthToken(username, password, viewstate, viewstategen, validation, url):
         """
         Perform OAuth
         @param username the username
@@ -64,10 +70,11 @@ class Rogers:
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
 
         values = {'__VIEWSTATE' : viewstate,
+                  '__VIEWSTATEGENERATOR' : viewstategen,
                   '__EVENTVALIDATION' : validation,
                   'UserName' : username,
                   'UserPassword' : password,
-                  'Login' : 'Sign+in' }
+                  'Login' : 'Sign in' }
 
         try:
             resp = opener.open(url, urllib.urlencode(values))

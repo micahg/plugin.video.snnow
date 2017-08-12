@@ -34,11 +34,11 @@ class SportsnetNow:
 
 
     def getRequestorID(self):
-        return "SportsnetNow"
+        return "SportsnetNowCA"
 
 
     def getSignedRequestorID(self):
-        return 'HR4BsuvUHVRcLrqOpFrm0ZI6oXXWEMH0HJc9NeoXSDFn80xaMuZP9TR5uBVX4C3NrrbNmHRElI0vSYr9OMMCh+ttUvYsU5zBfpCnJYyND5ivjYT6x7eBRKo1+dUQvLSqzCP5VtR4AtbWEgJYnZmokDhLdwn43TpY9QJWW5SDYfPDagG3X5GIVX1THiJOGdbQ2J3T/+3hppkvkZ0dncO6k7kQRhjBJl82huECAJo2QhxqP3OrpfHC2fi3TdPioCig+kS/USGje4kHK2Lu0eb/RsT3HpmTlybrMlU43Yd9tBg4r3yr9Apwra07g6hv/Cd3iHkUkUE6AAJi1GsGpGE6BVb1qNtQYfWIq2AGS9cyh6eVkJeUjWIaleSQKkpzITT89osu2gfgeW5qtywJvfS8wf1IRQT5vqx4jXS1MQwlaznVY4qpWmtH0RCZfww/jIYMwLLI4L4CtwtH8V8jIesYkrwICn/YxC4QSeRLhFMMWyWPmc0E0KXYspv19wX/XJFlhTTSPKtVRAN1kxuq26W9PNPsGonq3ebuFNb4Jgld4k4VTlTLOGg7CEEj09TTTnAx2Der5jegn3B+uPs5/cb64+LWbR9z7GxDRSGvR7rSCczrurNgTVfDopYiRZr8vbHDIaTMXyupuEmt4IH8TxXfowu9vsAlfEdNv1PIdI2uHco='
+        return 'uwA5R37PTXqe6tnY3r2XiViL0C/COzz0eEMGEKtjoMbXV4RWw59fuP12jMF2c5rh9tJYe1RTkp6oZcqepsmbwtDBpUP+w158M54S+nmvMzOMN4qVf2PAAq1ZmIWUTxnommPs+jYbEnkujoAbUm4vnrzIARv58twwtHORYhqF/aUTpHRgeNVVYF8Lc9+zFYidbRNN8Wipr1QcePT45B463m1h4hd8dS9cMHfMge+V5Bsxh/0MXy+06iDABLllbifWQ0iGsMwuMNHORRYIpf9bzGaWYbC7qqrd9z5Q1dmNsrpYKqVDPHYqxFN7YXc3wLhWjuam7v5RB5ogL3IlrV1AQyLX2in1jSsx8qdwbTJjT/gfimIlaFrCPfWJG7nSRKxa1yGwtY2R9WTXLPlxMNNtFq+lown01TPpeUhxxkeXdl70bReZcb/5Eq/YRuAbdt6FgvvPQUlrz9vRsVtiEx8+700cNd80Yehre553Vt7xoP1qmaLV/8K+/jvZASQ5D+gnkwifZ92f6YIfH7kzORN1pgmeJYxCbKw/pE1Fncp1NuEGoG8cYtxA3mb053QS4yFxepe3yq6gcSlwlQfxOl2JpXO5Ye/2OK8nqc3Z1Pdx343F1W7G4TdN0CORD8C4ELo0m6zPNFOwhHF21ErB2M4xju8/996GfSIqtciK0WmDDrk='
 
 
     def getDeviceID(self):
@@ -51,7 +51,7 @@ class SportsnetNow:
             dev_id = settings['DEV_ID']
 
         if not dev_id:
-            dev_id = ''.join(random.choice('0123456789abcdef') for _ in range(64))
+            dev_id = ''.join(random.choice('0123456789abcdef') for _ in range(16))
             Settings.instance().store(self.getRequestorID(), 'DEV_ID', dev_id)
 
         return dev_id
@@ -64,7 +64,8 @@ class SportsnetNow:
 
         @param mso the multi-system operator (eg: Rogers)
         """
-        return 'https://sp.auth.adobe.com/adobe-services/1.0/authenticate/saml?domain_name=adobe.com&noflash=true&mso_id=' + mso + '&requestor_id=SportsnetNow&no_iframe=true&client_type=iOS&client_version=1.8&redirect_url=http://adobepass.ios.app/'
+        return 'https://sp.auth.adobe.com/adobe-services/authenticate/saml?domain_name=adobe.com&noflash=true&no_iframe=true&mso_id={}&requestor_id=SportsnetNowCA&redirect_url=adobepass%3A%2F%2Fandroid.app&client_type=android&client_version=1.9.2'.format(mso)
+ 
 
 
     def checkMSOs(self):
@@ -251,7 +252,8 @@ class SportsnetNow:
         values = { 'format' : 'json',
                    'id' : id,
                    'type' : 'channel',
-                   'nt' : '1'}
+                   'nt' : '1',
+                   'drmtoken': 'true'}
 
         if token:
             values['aprid'] = name
@@ -259,7 +261,7 @@ class SportsnetNow:
 
         jar = Cookies.getCookieJar()
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
-        opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
+        #opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
 
         try:
             resp = opener.open(self.PUBLISH_POINT, urllib.urlencode(values))
@@ -275,8 +277,9 @@ class SportsnetNow:
         Cookies.saveCookieJar(jar)
 
         js_str = resp.read()
+
         result = json.loads(js_str)
-        return result['path']
+        return { 'stream': result['path'], 'token': result['drmToken'] }
 
 
     def parsePlaylist(self, url, raw_cookies = None):
