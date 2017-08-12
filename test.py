@@ -40,6 +40,9 @@ if abbr:
         sys.exit(1)
 
     stream = sn.getChannel(options.id, abbr, options.mso)
+
+    print 'Master stream is "{0}"\n\n'.format(stream)
+
     if not stream:
         print "Unable to get stream"
         sys.exit(0)
@@ -53,7 +56,7 @@ if abbr:
         if stream == None:
             stream = streams[str(bitrate)]
 
-    print stream
+    print 'Best bitrate sub-stream is "{0}"'.format(stream)
 
     if not options.ffplay == None:
         fstream = ""
