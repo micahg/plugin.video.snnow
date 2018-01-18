@@ -1,4 +1,5 @@
 import snnow
+from settings import log
 from adobe import AdobePass
 import xbmc, xbmcplugin, xbmcgui, xbmcaddon, os, urllib, urlparse
 
@@ -87,11 +88,16 @@ def playChannel(values):
     token = stream['token']
     stream = stream['stream']
 
+    log("MICAH TOKEN IS {}".format(token), True)
+    lic_srv = 'https://prod-lic2widevine.sd-ngp.net/proxy|authorization=bearer {0}|R{{SSM}}|'.format(token)
     name = values['name'][0]
     li = xbmcgui.ListItem(name)
 
-    labels = {"TVShowTitle" : values['tvshowtitle'][0],
-              "Studio" : values['name'][0]}
+    labels = {}
+    if 'tvshowtitle' in values:
+        labels['TVShowTitle'] = values['TVShowTitle'][0]
+    if 'name' in values:
+        labels['Studio'] = values['name'][0]
     if 'title' in values:
         labels['Title'] = values['title'][0]
     if 'plotoutline' in values:
@@ -102,9 +108,8 @@ def playChannel(values):
     li.setProperty('inputstreamaddon', 'inputstream.adaptive')
     li.setProperty('inputstream.adaptive.manifest_type', 'mpd')
     li.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
-    li.setProperty('inputstream.adaptive.license_key', 'https://prod-lic2widevine.sd-ngp.net/proxy')
+    li.setProperty('inputstream.adaptive.license_key', lic_srv)
     #lic_srv = 'https://prod-lic2widevine.sd-ngp.net/proxy|authorization=bearer {}|{}|'.format(token, stream)
-
     #li.setProperty('inputstream.adaptive.license_key', stream['token'])
     p = xbmc.Player()
     p.play(stream, li)

@@ -120,7 +120,11 @@ class SportsnetNow:
 
         guide_xml = resp.read()
         guide = {}
-        dom = xml.dom.minidom.parseString(guide_xml)
+        try:
+            dom = xml.dom.minidom.parseString(guide_xml)
+        except xml.parsers.expat.ExpatError:
+            return guide
+
         channels_node = dom.getElementsByTagName('channelEPG')[0]
         for channel_node in channels_node.getElementsByTagName('EPG'):
             cid = channel_node.attributes['channelId'].value
