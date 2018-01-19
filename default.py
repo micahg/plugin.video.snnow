@@ -42,7 +42,11 @@ def createMainMenu():
 
     for channel in channels:
         chanId = str(channel['neulion_id'])
-        values = { 'menu' : 'channel', 'name' : channel['description'],
+        desc = channel['name']
+        if 'description' in channel:
+            desc = channel['description']
+
+        values = { 'menu' : 'channel', 'name' : desc,
                    'id' : channel['neulion_id'], 'abbr' : channel['id'] }
 
         title = values['name']
@@ -52,7 +56,7 @@ def createMainMenu():
             prog = guide[chanId]
             for key in prog.keys():
                 values[key] = prog[key].encode('utf-8')
-        
+
             if prog['tvshowtitle']:
                 title += ' ([B]' + prog['tvshowtitle'] + '[/B]'
                 if prog['title']:
@@ -62,9 +66,9 @@ def createMainMenu():
             showTitle = prog['tvshowtitle']
 
         live = xbmcgui.ListItem(title)
-        
+
         labels = {"TVShowTitle" : showTitle,
-                  "Studio" : channel['description']}
+                  "Studio" : desc}
         if 'title' in values:
             labels['Title'] = prog['title']
         if 'plot' in values:
@@ -93,9 +97,11 @@ def playChannel(values):
     name = values['name'][0]
     li = xbmcgui.ListItem(name)
 
+    log("MICAH values are {}".format(values), True);
+
     labels = {}
     if 'tvshowtitle' in values:
-        labels['TVShowTitle'] = values['TVShowTitle'][0]
+        labels['TVShowTitle'] = values['tvshowtitle'][0]
     if 'name' in values:
         labels['Studio'] = values['name'][0]
     if 'title' in values:
@@ -157,4 +163,3 @@ else:
     values = urlparse.parse_qs(sys.argv[2][1:])
     if values['menu'][0] == 'channel':
         playChannel(values)
-
