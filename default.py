@@ -2,7 +2,7 @@ import snnow
 from settings import log
 from adobe import AdobePass
 import xbmc, xbmcplugin, xbmcgui, xbmcaddon, os, urllib, urlparse
-
+import inputstreamhelper
 __settings__ = xbmcaddon.Addon(id='plugin.video.snnow')
 __language__ = __settings__.getLocalizedString
 
@@ -95,30 +95,37 @@ def playChannel(values):
     log("MICAH TOKEN IS {}".format(token), True)
     lic_srv = 'https://prod-lic2widevine.sd-ngp.net/proxy|authorization=bearer {0}|R{{SSM}}|'.format(token)
     name = values['name'][0]
-    li = xbmcgui.ListItem(name)
 
-    log("MICAH values are {}".format(values), True);
+    inputstream_helper = inputstreamhelper.Helper('mpd', drm='widevine')
+    if inputstream_helper.check_inputstream():
+        li = xbmcgui.ListItem(name)
 
-    labels = {}
-    if 'tvshowtitle' in values:
-        labels['TVShowTitle'] = values['tvshowtitle'][0]
-    if 'name' in values:
-        labels['Studio'] = values['name'][0]
-    if 'title' in values:
-        labels['Title'] = values['title'][0]
-    if 'plotoutline' in values:
-        labels["Plot"] = values['plot'][0]
-    li.setInfo(type="Video", infoLabels=labels)
-    # the following 4 lines borrowed from DAZN
-    li.setMimeType('application/dash+xml')
-    li.setProperty('inputstreamaddon', 'inputstream.adaptive')
-    li.setProperty('inputstream.adaptive.manifest_type', 'mpd')
-    li.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
-    li.setProperty('inputstream.adaptive.license_key', lic_srv)
-    #lic_srv = 'https://prod-lic2widevine.sd-ngp.net/proxy|authorization=bearer {}|{}|'.format(token, stream)
-    #li.setProperty('inputstream.adaptive.license_key', stream['token'])
-    p = xbmc.Player()
-    p.play(stream, li)
+        log("MICAH values are {}".format(values), True);
+
+        labels = {}
+        if 'tvshowtitle' in values:
+            labels['TVShowTitle'] = values['tvshowtitle'][0]
+        if 'name' in values:
+            labels['Studio'] = values['name'][0]
+        if 'title' in values:
+            labels['Title'] = values['title'][0]
+        if 'plotoutline' in values:
+            labels["Plot"] = values['plot'][0]
+        li.setInfo(type="Video", infoLabels=labels)
+
+        # the following 4 lines borrowed from DAZN
+        li.setMimeType('application/dash+xml')
+        li.setProperty('inputstreamaddon', 'inputstream.adaptive')
+        li.setProperty('inputstream.adaptive.manifest_type', 'mpd')
+        li.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
+        li.setProperty('inputstream.adaptive.license_key', lic_srv)
+        #lic_srv = 'https://prod-lic2widevine.sd-ngp.net/proxy|authorization=bearer {}|{}|'.format(token, stream)
+        #li.setProperty('inputstream.adaptive.license_key', stream['token'])
+        p = xbmc.Player()
+        p.play(stream, li)
+    else:
+        log("ERROR: inpustream helper check failed.", True);
+        dialog.ok(__language__(30007), __language__(30008))
 
 
 def getChannelStream(channelId, channelName, msoName):
