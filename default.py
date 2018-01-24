@@ -91,9 +91,26 @@ def playChannel(values):
     stream = getChannelStream(values['id'][0], values['abbr'][0], mso)
     token = stream['token']
     stream = stream['stream']
+    headers = {
+        'origin': 'https://now.sportsnet.ca',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
+        'referer': 'https://now.sportsnet.ca/',
+        ':authority': 'prod-lic2widevine.sd-ngp.net',
+        ':method': 'POST',
+        ':path': '/proxy',
+        ':scheme': 'https',
+        'authorization': 'bearer {}'.format(token)
+    };
+
+    header_str = '&'.join(["{}={}".format(k, v) for k, v in headers.items()])
 
     log("MICAH TOKEN IS {}".format(token), True)
-    lic_srv = 'https://prod-lic2widevine.sd-ngp.net/proxy|authorization=bearer {0}|R{{SSM}}|'.format(token)
+    log("MICAH HEADER IS '{}'".format(header_str), True)
+
+    lic_srv = 'https://prod-lic2widevine.sd-ngp.net/proxy|{0}|R{{SSM}}|'.format(header_str)
+    #lic_srv = 'https://prod-lic2widevine.sd-ngp.net/proxy|{0}||'.format(header_str)
+    log("MICAH lic_srv is {}".format(lic_srv))
+
     name = values['name'][0]
 
     inputstream_helper = inputstreamhelper.Helper('mpd', drm='widevine')
@@ -117,10 +134,10 @@ def playChannel(values):
         li.setMimeType('application/dash+xml')
         li.setProperty('inputstreamaddon', 'inputstream.adaptive')
         li.setProperty('inputstream.adaptive.manifest_type', 'mpd')
+        #li.setProperty('inputstream.adaptive.license_type', 'com.microsoft.playready')
         li.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
         li.setProperty('inputstream.adaptive.license_key', lic_srv)
-        #lic_srv = 'https://prod-lic2widevine.sd-ngp.net/proxy|authorization=bearer {}|{}|'.format(token, stream)
-        #li.setProperty('inputstream.adaptive.license_key', stream['token'])
+
         p = xbmc.Player()
         p.play(stream, li)
     else:
