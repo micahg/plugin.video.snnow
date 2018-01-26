@@ -92,14 +92,19 @@ def playChannel(values):
     token = stream['token']
     stream = stream['stream']
     headers = {
-        'origin': 'https://now.sportsnet.ca',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
-        'referer': 'https://now.sportsnet.ca/',
         ':authority': 'prod-lic2widevine.sd-ngp.net',
         ':method': 'POST',
         ':path': '/proxy',
         ':scheme': 'https',
-        'authorization': 'bearer {}'.format(token)
+        'accept': '*/*',
+        'accept-encoding': 'gzip, deflate, br',
+        'accept-language': 'en-CA%2Cen-GB%3Bq%3D0.9%2Cen-US%3Bq%3D0.8%2Cen%3Bq%3D0.7',
+        'authorization': 'bearer {}'.format(token),
+        'origin': 'https://now.sportsnet.ca',
+        'referer': 'https://now.sportsnet.ca/',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
+        'content-type': '',
+        'Accept-Charset': ''
     };
 
     header_str = '&'.join(["{}={}".format(k, v) for k, v in headers.items()])
