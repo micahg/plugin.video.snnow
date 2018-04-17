@@ -1,9 +1,47 @@
 #!/usr/bin/python
+import requests, logging
+
+
+try: # for Python 3
+    from http.client import HTTPConnection
+except ImportError:
+    from httplib import HTTPConnection
+HTTPConnection.debuglevel = 1
+
+logging.basicConfig() # you need to initialize logging, otherwise you will not see anything from requests
+logging.getLogger().setLevel(logging.DEBUG)
+requests_log = logging.getLogger("requests.packages.urllib3")
+requests_log.setLevel(logging.DEBUG)
+requests_log.propagate = True
+
 import sys, snnow, os
 from cookies import Cookies
 from optparse import OptionParser
 from adobe import AdobePass
-from wildvine import Wildvine
+
+
+def playChannel(mso, token):
+
+    headers = {
+        'accept': '*/*',
+        'accept-encoding': 'gzip, deflate, br',
+        'accept-language': 'en-CA,en-GB;q=0.9,en-US;q=0.8,en;q=0.7',
+        'authorization': 'bearer {}'.format(token),
+        'origin': 'https://now.sportsnet.ca',
+        'referer': 'https://now.sportsnet.ca/',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
+        '%3Aauthority': 'prod-lic2widevine.sd-ngp.net',
+        '%3Amethod': 'POST',
+        '%3Apath': '/proxy',
+        '%3Ascheme': 'https',
+    };
+
+    r = requests.post('https://prod-lic2widevine.sd-ngp.net/proxy', data='', headers=headers)
+
+    print 'Status code is {}'.format(str(r.status_code))
+
+    return
+
 
 # parse the options
 parser = OptionParser()
@@ -36,6 +74,11 @@ for channel in  channels:
             abbr = channel['id']
 
 if abbr:
+    # ensure an MSO
+    if options.mso == None:
+        print "No MSO specified"
+        sys.exit(1)
+
     if AdobePass.getAuthnToken() == None:
         print "Not logged in..."
         sys.exit(1)
@@ -44,11 +87,13 @@ if abbr:
     token = stream['token']
     stream = stream['stream']
 
-    print 'Stream is {}\nToken is {}'.format(stream, token)
-    
-    Wildvine.first(token)
+    #print 'Stream is {}\n\nToken is {}'.format(stream, token)
+    playChannel(stream, token)
+
 else:
     for channel in  channels:
         prog = guide[str(channel['neulion_id'])]
-        print str(channel['neulion_id']) + ') ' + channel['description'] + ' (' + \
-              channel['id'] + ') - ' + str(prog)
+        desc = channel['description'] if 'description' in channel else ".*???*."
+        chan_id = channel['id']
+
+        print str(channel['neulion_id']) + ') ' + desc + ' (' + chan_id + ') - ' + str(prog)

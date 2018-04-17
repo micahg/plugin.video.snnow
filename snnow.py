@@ -51,7 +51,8 @@ class SportsnetNow:
             dev_id = settings['DEV_ID']
 
         if not dev_id:
-            dev_id = ''.join(random.choice('0123456789abcdef') for _ in range(16))
+            num = ''.join(random.choice('0123456789ABCDEF') for _ in range(32))
+            dev_id = 'web-{}'.format(num)
             Settings.instance().store(self.getRequestorID(), 'DEV_ID', dev_id)
 
         return dev_id
@@ -65,7 +66,6 @@ class SportsnetNow:
         @param mso the multi-system operator (eg: Rogers)
         """
         return 'https://sp.auth.adobe.com/adobe-services/authenticate/saml?domain_name=adobe.com&noflash=true&no_iframe=true&mso_id={}&requestor_id=SportsnetNowCA&redirect_url=adobepass%3A%2F%2Fandroid.app&client_type=android&client_version=1.9.2'.format(mso)
- 
 
 
     def checkMSOs(self):
@@ -145,16 +145,16 @@ class SportsnetNow:
                 except:
                     title = curr_item.attributes['e']
                 episode = curr_item.attributes['e']
-                
+
                 try:
                     description = curr_item.attibutes['ed']
                     show['plot'] = description.value.encode('utf-8').strip().decode('utf-8')
                 except:
                     show['plot'] = 'No description found'
-                
+
                 show['tvshowtitle'] = title.value.encode('utf-8').strip().decode('utf-8')
                 show['title'] = episode.value.encode('utf-8').strip().decode('utf-8')
-                
+
                 guide[cid] = show
 
         return guide
@@ -191,7 +191,7 @@ class SportsnetNow:
         @param the MSO (eg: Rogers)
         """
 
-        # Get the MSO class from the 
+        # Get the MSO class from the
         mso = MSOFactory.getMSO(msoName)
         if mso == None:
             print "Invalid MSO"
@@ -257,7 +257,10 @@ class SportsnetNow:
                    'id' : id,
                    'type' : 'channel',
                    'nt' : '1',
-                   'drmtoken': 'true'}
+                   'drmtoken': 'true',
+                   'format': 'json',
+                   #'callback': 'nlPlayerQuad.setPublishPoint',
+                   'deviceid': self.getDeviceID()}
 
         if token:
             values['aprid'] = name
@@ -284,62 +287,3 @@ class SportsnetNow:
 
         result = json.loads(js_str)
         return { 'stream': result['path'], 'token': result['drmToken'] }
-
-
-    def parsePlaylist(self, url, raw_cookies = None):
-        """
-        Parse the playlist and split it by bitrate.
-        """
-        streams = {}
-        opener = urllib2.build_opener()
-        opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
-
-        try:
-            resp = opener.open(url)
-        except urllib2.URLError, e:
-            print e.args
-            return streams
-        except urllib2.HTTPError, e:
-            print e.getcode()
-            return streams
-
-        cookie_str = ''
-        cookies = []
-        for header in resp.info().headers:
-            if header[:10] == 'Set-Cookie':
-                cookie = header[12:]
-                cookie_str += urllib.quote(cookie.strip() + '\n' )
-                if raw_cookies != None:
-                    raw_cookies.append(cookie)
-                cookies.append(cookie.strip())
-
-        m3u8 = resp.read();
-
-        url = urlparse(url)
-        prefix = url.scheme + "://" + url.netloc + url.path[:url.path.rfind('/')+1]
-        lines = m3u8.split('\n')
-
-        bandwidth = ""
-        for line in lines:
-            if line == "#EXTM3U":
-                continue
-            if line[:17] == '#EXT-X-STREAM-INF':
-                bandwidth = re.search(".*,?BANDWIDTH\=(.*?),", line)
-                if bandwidth:
-                    bandwidth = bandwidth.group(1)
-                else:
-                    print "Unable to parse bandwidth"
-            elif line[-5:] == ".m3u8":
-
-                stream = prefix + line + "|User-Agent={0}".format(urllib.quote(self.USER_AGENT))
-                """cookie_num = 0
-                for cookie in cookies:
-                    stream += "&Cookie{0}={1}".format(str(cookie_num), urllib.quote(cookie))
-                    cookie_num += 1
-                streams[bandwidth] = stream
-                """
-                stream = prefix + line + "|User-Agent={0}&Cookies={1}"
-                stream = stream.format(urllib.quote(self.USER_AGENT),cookie_str)
-                streams[bandwidth] = stream
-
-        return streams
