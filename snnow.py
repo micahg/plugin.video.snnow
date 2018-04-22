@@ -1,9 +1,8 @@
-import urllib, urllib2, random, time, datetime, json, xml.dom.minidom, re
+import urllib, urllib2, random, time, datetime, json, xml.dom.minidom
 from adobe import AdobePass
 from msofactory import MSOFactory
 from cookies import Cookies
 from settings import Settings, log
-from urlparse import urlparse
 
 
 class SportsnetNow:
@@ -267,11 +266,14 @@ class SportsnetNow:
             values['aptoken'] = token
 
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
-        #opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar),
+                                      urllib2.HTTPHandler(debuglevel=1),
+                                      urllib2.HTTPSHandler(debuglevel=1))
+        
+        url = self.PUBLISH_POINT + urllib.urlencode(values)
 
         try:
-            resp = opener.open(self.PUBLISH_POINT, urllib.urlencode(values))
+            resp = opener.open(url)
         except urllib2.HTTPError as err:
             log("getPublishPoint {0}: '{1}'".format(err.code, err.reason), True)
             resp = err.read()

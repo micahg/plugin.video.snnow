@@ -1,4 +1,6 @@
 #!/usr/bin/python
+#import httplib as http_client
+#http_client.HTTPConnection.debuglevel = 1
 import requests, logging
 
 

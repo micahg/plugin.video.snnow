@@ -108,14 +108,7 @@ def playChannel(values):
     };
 
     header_str = '&'.join(["{}={}".format(k, v) for k, v in headers.items()])
-
-    log("MICAH TOKEN IS {}".format(token), True)
-    log("MICAH HEADER IS '{}'".format(header_str), True)
-
     lic_srv = 'https://prod-lic2widevine.sd-ngp.net/proxy|{0}|R{{SSM}}|'.format(header_str)
-
-    log("MICAH lic_srv is {}".format(lic_srv))
-
     name = values['name'][0]
 
     inputstream_helper = inputstreamhelper.Helper('mpd', drm='widevine')
@@ -137,6 +130,7 @@ def playChannel(values):
         li.setMimeType('application/dash+xml')
         li.setProperty('inputstreamaddon', 'inputstream.adaptive')
         li.setProperty('inputstream.adaptive.manifest_type', 'mpd')
+        li.setProperty('inputstream.adaptive.manifest_update_parameter', 'full')
         li.setProperty('inputstream.adaptive.license_type', 'com.widevine.alpha')
         li.setProperty('inputstream.adaptive.license_key', lic_srv)
 
