@@ -1,1 +1,4 @@
 *.pyo
+*.chls
+*.har
+*.pyc
