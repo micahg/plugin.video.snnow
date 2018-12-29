@@ -1,8 +1,49 @@
 #!/usr/bin/python
+#import httplib as http_client
+#http_client.HTTPConnection.debuglevel = 1
+import requests, logging
+
+
+try: # for Python 3
+    from http.client import HTTPConnection
+except ImportError:
+    from httplib import HTTPConnection
+HTTPConnection.debuglevel = 1
+
+logging.basicConfig() # you need to initialize logging, otherwise you will not see anything from requests
+logging.getLogger().setLevel(logging.DEBUG)
+requests_log = logging.getLogger("requests.packages.urllib3")
+requests_log.setLevel(logging.DEBUG)
+requests_log.propagate = True
+
 import sys, snnow, os
 from cookies import Cookies
 from optparse import OptionParser
 from adobe import AdobePass
+
+
+def playChannel(mso, token):
+
+    headers = {
+        'accept': '*/*',
+        'accept-encoding': 'gzip, deflate, br',
+        'accept-language': 'en-CA,en-GB;q=0.9,en-US;q=0.8,en;q=0.7',
+        'authorization': 'bearer {}'.format(token),
+        'origin': 'https://now.sportsnet.ca',
+        'referer': 'https://now.sportsnet.ca/',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
+        '%3Aauthority': 'prod-lic2widevine.sd-ngp.net',
+        '%3Amethod': 'POST',
+        '%3Apath': '/proxy',
+        '%3Ascheme': 'https',
+    };
+
+    r = requests.post('https://prod-lic2widevine.sd-ngp.net/proxy', data='', headers=headers)
+
+    print 'Status code is {}'.format(str(r.status_code))
+
+    return
+
 
 # parse the options
 parser = OptionParser()
@@ -35,40 +76,25 @@ for channel in  channels:
             abbr = channel['id']
 
 if abbr:
+    # ensure an MSO
+    if options.mso == None:
+        print "No MSO specified"
+        sys.exit(1)
+
     if AdobePass.getAuthnToken() == None:
         print "Not logged in..."
         sys.exit(1)
 
     stream = sn.getChannel(options.id, abbr, options.mso)
+    token = stream['token']
+    stream = stream['stream']
 
-    print 'Master stream is "{0}"\n\n'.format(stream)
-
-    if not stream:
-        print "Unable to get stream"
-        sys.exit(0)
-
-    cookies = []
-    streams = sn.parsePlaylist(stream, cookies)
-    bitrates = [int(x) for x in streams.keys()]
-    
-    stream = None
-    for bitrate in reversed(sorted(bitrates)):
-        if stream == None:
-            stream = streams[str(bitrate)]
-
-    print 'Best bitrate sub-stream is "{0}"'.format(stream)
-
-    if not options.ffplay == None:
-        fstream = ""
-        fstream += ' -cookies "'
-        for cookie in cookies:
-            fstream += cookie
-        
-        fstream += '" "' + stream.split('|')[0] + '"' 
-        command = "ffplay " + fstream
-        os.system(command)
+    #print 'Stream is {}\n\nToken is {}'.format(stream, token)
+    playChannel(stream, token)
 else:
     for channel in  channels:
         prog = guide[str(channel['neulion_id'])]
-        print str(channel['neulion_id']) + ') ' + channel['description'] + ' (' + \
-              channel['id'] + ') - ' + str(prog)
+        desc = channel['description'] if 'description' in channel else ".*???*."
+        chan_id = channel['id']
+
+        print str(channel['neulion_id']) + ') ' + desc + ' (' + chan_id + ') - ' + str(prog)

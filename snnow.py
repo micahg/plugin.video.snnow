@@ -1,9 +1,8 @@
-import urllib, urllib2, random, time, datetime, json, xml.dom.minidom, re
+import urllib, urllib2, random, time, datetime, json, xml.dom.minidom
 from adobe import AdobePass
 from msofactory import MSOFactory
 from cookies import Cookies
 from settings import Settings, log
-from urlparse import urlparse
 
 
 class SportsnetNow:
@@ -34,11 +33,11 @@ class SportsnetNow:
 
 
     def getRequestorID(self):
-        return "SportsnetNow"
+        return "SportsnetNowCA"
 
 
     def getSignedRequestorID(self):
-        return 'HR4BsuvUHVRcLrqOpFrm0ZI6oXXWEMH0HJc9NeoXSDFn80xaMuZP9TR5uBVX4C3NrrbNmHRElI0vSYr9OMMCh+ttUvYsU5zBfpCnJYyND5ivjYT6x7eBRKo1+dUQvLSqzCP5VtR4AtbWEgJYnZmokDhLdwn43TpY9QJWW5SDYfPDagG3X5GIVX1THiJOGdbQ2J3T/+3hppkvkZ0dncO6k7kQRhjBJl82huECAJo2QhxqP3OrpfHC2fi3TdPioCig+kS/USGje4kHK2Lu0eb/RsT3HpmTlybrMlU43Yd9tBg4r3yr9Apwra07g6hv/Cd3iHkUkUE6AAJi1GsGpGE6BVb1qNtQYfWIq2AGS9cyh6eVkJeUjWIaleSQKkpzITT89osu2gfgeW5qtywJvfS8wf1IRQT5vqx4jXS1MQwlaznVY4qpWmtH0RCZfww/jIYMwLLI4L4CtwtH8V8jIesYkrwICn/YxC4QSeRLhFMMWyWPmc0E0KXYspv19wX/XJFlhTTSPKtVRAN1kxuq26W9PNPsGonq3ebuFNb4Jgld4k4VTlTLOGg7CEEj09TTTnAx2Der5jegn3B+uPs5/cb64+LWbR9z7GxDRSGvR7rSCczrurNgTVfDopYiRZr8vbHDIaTMXyupuEmt4IH8TxXfowu9vsAlfEdNv1PIdI2uHco='
+        return 'uwA5R37PTXqe6tnY3r2XiViL0C/COzz0eEMGEKtjoMbXV4RWw59fuP12jMF2c5rh9tJYe1RTkp6oZcqepsmbwtDBpUP+w158M54S+nmvMzOMN4qVf2PAAq1ZmIWUTxnommPs+jYbEnkujoAbUm4vnrzIARv58twwtHORYhqF/aUTpHRgeNVVYF8Lc9+zFYidbRNN8Wipr1QcePT45B463m1h4hd8dS9cMHfMge+V5Bsxh/0MXy+06iDABLllbifWQ0iGsMwuMNHORRYIpf9bzGaWYbC7qqrd9z5Q1dmNsrpYKqVDPHYqxFN7YXc3wLhWjuam7v5RB5ogL3IlrV1AQyLX2in1jSsx8qdwbTJjT/gfimIlaFrCPfWJG7nSRKxa1yGwtY2R9WTXLPlxMNNtFq+lown01TPpeUhxxkeXdl70bReZcb/5Eq/YRuAbdt6FgvvPQUlrz9vRsVtiEx8+700cNd80Yehre553Vt7xoP1qmaLV/8K+/jvZASQ5D+gnkwifZ92f6YIfH7kzORN1pgmeJYxCbKw/pE1Fncp1NuEGoG8cYtxA3mb053QS4yFxepe3yq6gcSlwlQfxOl2JpXO5Ye/2OK8nqc3Z1Pdx343F1W7G4TdN0CORD8C4ELo0m6zPNFOwhHF21ErB2M4xju8/996GfSIqtciK0WmDDrk='
 
 
     def getDeviceID(self):
@@ -51,7 +50,8 @@ class SportsnetNow:
             dev_id = settings['DEV_ID']
 
         if not dev_id:
-            dev_id = ''.join(random.choice('0123456789abcdef') for _ in range(64))
+            num = ''.join(random.choice('0123456789ABCDEF') for _ in range(32))
+            dev_id = 'web-{}'.format(num)
             Settings.instance().store(self.getRequestorID(), 'DEV_ID', dev_id)
 
         return dev_id
@@ -64,7 +64,7 @@ class SportsnetNow:
 
         @param mso the multi-system operator (eg: Rogers)
         """
-        return 'https://sp.auth.adobe.com/adobe-services/1.0/authenticate/saml?domain_name=adobe.com&noflash=true&mso_id=' + mso + '&requestor_id=SportsnetNow&no_iframe=true&client_type=iOS&client_version=1.8&redirect_url=http://adobepass.ios.app/'
+        return 'https://sp.auth.adobe.com/adobe-services/authenticate/saml?domain_name=adobe.com&noflash=true&no_iframe=true&mso_id={}&requestor_id=SportsnetNowCA&redirect_url=adobepass%3A%2F%2Fandroid.app&client_type=android&client_version=1.9.2'.format(mso)
 
 
     def checkMSOs(self):
@@ -119,7 +119,11 @@ class SportsnetNow:
 
         guide_xml = resp.read()
         guide = {}
-        dom = xml.dom.minidom.parseString(guide_xml)
+        try:
+            dom = xml.dom.minidom.parseString(guide_xml)
+        except xml.parsers.expat.ExpatError:
+            return guide
+
         channels_node = dom.getElementsByTagName('channelEPG')[0]
         for channel_node in channels_node.getElementsByTagName('EPG'):
             cid = channel_node.attributes['channelId'].value
@@ -140,16 +144,16 @@ class SportsnetNow:
                 except:
                     title = curr_item.attributes['e']
                 episode = curr_item.attributes['e']
-                
+
                 try:
                     description = curr_item.attibutes['ed']
                     show['plot'] = description.value.encode('utf-8').strip().decode('utf-8')
                 except:
                     show['plot'] = 'No description found'
-                
+
                 show['tvshowtitle'] = title.value.encode('utf-8').strip().decode('utf-8')
                 show['title'] = episode.value.encode('utf-8').strip().decode('utf-8')
-                
+
                 guide[cid] = show
 
         return guide
@@ -186,7 +190,7 @@ class SportsnetNow:
         @param the MSO (eg: Rogers)
         """
 
-        # Get the MSO class from the 
+        # Get the MSO class from the
         mso = MSOFactory.getMSO(msoName)
         if mso == None:
             print "Invalid MSO"
@@ -251,18 +255,25 @@ class SportsnetNow:
         values = { 'format' : 'json',
                    'id' : id,
                    'type' : 'channel',
-                   'nt' : '1'}
+                   'nt' : '1',
+                   'drmtoken': 'true',
+                   'format': 'json',
+                   #'callback': 'nlPlayerQuad.setPublishPoint',
+                   'deviceid': self.getDeviceID()}
 
         if token:
             values['aprid'] = name
             values['aptoken'] = token
 
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
-        opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar),
+                                      urllib2.HTTPHandler(debuglevel=1),
+                                      urllib2.HTTPSHandler(debuglevel=1))
+        
+        url = self.PUBLISH_POINT + urllib.urlencode(values)
 
         try:
-            resp = opener.open(self.PUBLISH_POINT, urllib.urlencode(values))
+            resp = opener.open(url)
         except urllib2.HTTPError as err:
             log("getPublishPoint {0}: '{1}'".format(err.code, err.reason), True)
             resp = err.read()
@@ -275,64 +286,6 @@ class SportsnetNow:
         Cookies.saveCookieJar(jar)
 
         js_str = resp.read()
+
         result = json.loads(js_str)
-        return result['path']
-
-
-    def parsePlaylist(self, url, raw_cookies = None):
-        """
-        Parse the playlist and split it by bitrate.
-        """
-        streams = {}
-        opener = urllib2.build_opener()
-        opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
-
-        try:
-            resp = opener.open(url)
-        except urllib2.URLError, e:
-            print e.args
-            return streams
-        except urllib2.HTTPError, e:
-            print e.getcode()
-            return streams
-
-        cookie_str = ''
-        cookies = []
-        for header in resp.info().headers:
-            if header[:10] == 'Set-Cookie':
-                cookie = header[12:]
-                cookie_str += urllib.quote(cookie.strip() + '\n' )
-                if raw_cookies != None:
-                    raw_cookies.append(cookie)
-                cookies.append(cookie.strip())
-
-        m3u8 = resp.read();
-
-        url = urlparse(url)
-        prefix = url.scheme + "://" + url.netloc + url.path[:url.path.rfind('/')+1]
-        lines = m3u8.split('\n')
-
-        bandwidth = ""
-        for line in lines:
-            if line == "#EXTM3U":
-                continue
-            if line[:17] == '#EXT-X-STREAM-INF':
-                bandwidth = re.search(".*,?BANDWIDTH\=(.*?),", line)
-                if bandwidth:
-                    bandwidth = bandwidth.group(1)
-                else:
-                    print "Unable to parse bandwidth"
-            elif line[-5:] == ".m3u8":
-
-                stream = prefix + line + "|User-Agent={0}".format(urllib.quote(self.USER_AGENT))
-                """cookie_num = 0
-                for cookie in cookies:
-                    stream += "&Cookie{0}={1}".format(str(cookie_num), urllib.quote(cookie))
-                    cookie_num += 1
-                streams[bandwidth] = stream
-                """
-                stream = prefix + line + "|User-Agent={0}&Cookies={1}"
-                stream = stream.format(urllib.quote(self.USER_AGENT),cookie_str)
-                streams[bandwidth] = stream
-
-        return streams
+        return { 'stream': result['path'], 'token': result['drmToken'] }
