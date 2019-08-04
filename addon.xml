@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.snnow" name="Sportsnet Now" version="1.0.13" provider-name="Micah Galizia">
+<addon id="plugin.video.snnow" name="Sportsnet Now" version="1.0.14" provider-name="Micah Galizia">
   <requires>
     <import addon="xbmc.python" version="2.20.0"/>
     <import addon="script.module.inputstreamhelper" version="0.2.4"/>
@@ -9,6 +9,9 @@
   </extension>
   <extension point="xbmc.addon.metadata">
     <summary>Sportsnet Now Kodi Plugin</summary>
+    <news>
+      - Trying to fix install issue.
+    </news>
     <description>View online content from Rogers Sportsnet Now.</description>
     <platform>all</platform>
     <language>en</language>
