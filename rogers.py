@@ -1,5 +1,6 @@
 import urllib, urllib2, re
 from cookies import Cookies
+from settings import log
 
 class Rogers:
     """
@@ -33,7 +34,7 @@ class Rogers:
         try:
             resp = opener.open(uri)
         except:
-            print "Unable get OAUTH location"
+            log ("Unable get OAUTH location", True)
             return None
         Cookies.saveCookieJar(jar)
 
@@ -79,7 +80,7 @@ class Rogers:
         try:
             resp = opener.open(url, urllib.urlencode(values))
         except urllib2.URLError, e:
-            print e.args
+            log (e.args, True)
         Cookies.saveCookieJar(jar)
 
         return True
