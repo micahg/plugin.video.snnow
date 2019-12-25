@@ -1,12 +1,18 @@
-import os, json
+import os, json, xbmcaddon
+__settings__ = xbmcaddon.Addon(id='plugin.video.snnow')
+noticeloglevel = __settings__.getSetting("LOGNOTICElevel")
 
 def log(msg, error = False):
+    full_msg = "plugin.video.snnow: {0}".format(msg)
     try:
         import xbmc
-        full_msg = "plugin.video.mlslive: {0}".format(msg)
         xbmc.log(full_msg, level=xbmc.LOGERROR if error else xbmc.LOGINFO)
-    except:
-        print msg
+        if noticeloglevel == "Yes":
+            xbmc.log(full_msg, level=xbmc.LOGERROR if error else xbmc.LOGNOTICE)
+        else:
+            xbmc.log(full_msg, level=xbmc.LOGERROR if error else xbmc.LOGDEBUG)
+    except Exception as e:
+        xbmc.log(e, level= xbmc.LOGDEBUG)
 
 class Settings:
 

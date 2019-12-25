@@ -79,7 +79,7 @@ class SportsnetNow:
         try:
             resp = opener.open(self.AUTHORIZED_MSO_URI)
         except:
-            print "Unable get OAUTH location"
+            log("Unable get OAUTH location", True)
             return None
         Cookies.saveCookieJar(jar)
 
@@ -113,7 +113,7 @@ class SportsnetNow:
         try:
             resp = opener.open(url)
         except urllib2.URLError, e:
-            print e.args
+            log(e.args, True)
             return None
         Cookies.saveCookieJar(jar)
 
@@ -171,7 +171,7 @@ class SportsnetNow:
         try:
             resp = opener.open(self.CONFIG_URI)
         except urllib2.URLError, e:
-            print e.args
+            log(e.args, True)
             return None
         Cookies.saveCookieJar(jar)
 
@@ -193,12 +193,12 @@ class SportsnetNow:
         # Get the MSO class from the
         mso = MSOFactory.getMSO(msoName)
         if mso == None:
-            print "Invalid MSO"
+            log("Invalid MSO", True)
             return None
 
         # Authorize with the MSO
         if not mso.authorize(self, username, password):
-            print "Failed to authorize with MSO"
+            log ("Failed to authorize with MSO", True)
             return False
 
         channels = self.getChannels()
@@ -206,12 +206,12 @@ class SportsnetNow:
             return True
 
         if not AdobePass.sessionDevice(self):
-            print "Session device failed."
+            log ("Session device failed.", True)
             return False
 
         result = AdobePass.preAuthorize(self, channels)
         if not result:
-            print "Preauthorize failed."
+            log ("Preauthorize failed.", True)
             return False
 
         return True
@@ -231,7 +231,7 @@ class SportsnetNow:
         """
         mso = MSOFactory.getMSO(msoName)
         if mso == None:
-            print "Invalid MSO"
+            log ("Invalid MSO", True)
             return None
 
         mso_id = mso.getID()
@@ -239,7 +239,7 @@ class SportsnetNow:
         if mso_id != 'Sportsnet':
             ap = AdobePass()
             if not ap.authorizeDevice(self, mso_id, name):
-                print "Authorize device failed"
+                log ("Authorize device failed", True)
                 return None
 
             token = AdobePass.deviceShortAuthorize(self, msoName)

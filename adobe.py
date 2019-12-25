@@ -1,5 +1,5 @@
 import urllib, urllib2, xml.dom.minidom, uuid
-from settings import Settings
+from settings import Settings, log
 from cookies import Cookies
 
 
@@ -32,7 +32,7 @@ class AdobePass:
         try:
             resp = opener.open(AdobePass.SESSION_DEVICE_URI, urllib.urlencode(values))
         except urllib2.URLError, e:
-            print e.args
+            log (e.args, True)
             return False
         Cookies.saveCookieJar(jar)
 
@@ -82,7 +82,7 @@ class AdobePass:
         try:
             resp = opener.open(AdobePass.PREAUTHORIZE_URI, value_str)
         except urllib2.URLError, e:
-            print e.args
+            log (e.args, True)
             return None
         Cookies.saveCookieJar(jar)
 
@@ -128,19 +128,19 @@ class AdobePass:
         try:
             resp = opener.open(AdobePass.AUTHORIZE_URI, urllib.urlencode(values))
         except urllib2.URLError, e:
-            print e.args
+            log (e.args, True)
             return False
         Cookies.saveCookieJar(jar)
 
         resp_xml = resp.read()
         if resp_xml.find('notAuthorized') >= 0:
-            print "Unable to authorise for channel '" + channel + "'"
+            log ("Unable to authorise for channel '" + channel + "'")
             return False
 
         try:
             dom = xml.dom.minidom.parseString(resp_xml)
         except:
-            print "Unable to parse device authorization xml."
+            log ("Unable to parse device authorization xml.", True)
             return False
 
         result_node = dom.getElementsByTagName('result')[0]
@@ -189,7 +189,7 @@ class AdobePass:
         try:
             resp = opener.open(AdobePass.DEVICE_SHORT_AUTHORIZE, urllib.urlencode(values))
         except urllib2.URLError, e:
-            print e.args
+            log (e.args, True)
             return ''
         Cookies.saveCookieJar(jar)
 

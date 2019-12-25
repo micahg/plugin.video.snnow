@@ -3,4 +3,5 @@
    <setting id="username"  type="text" label="30050"/>
    <setting id="password"  type="text" label="30051" option="hidden"/>
    <setting id="mso" type="labelenum" label="30052" values="Sportsnet|Rogers|ShawGo|Telus|Cogeco" default="Sportsnet" />
+   <setting id="LOGNOTICElevel" type="labelenum" label="30053" values="Yes|No" default="No" />
 </settings>

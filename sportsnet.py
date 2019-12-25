@@ -1,5 +1,6 @@
 import urllib, urllib2, time, json, re
 from cookies import Cookies
+from settings import log
 
 class Sportsnet:
     """
@@ -51,7 +52,7 @@ class Sportsnet:
             resp = opener.open('https://now.sportsnet.ca/mvpd?',
                                urllib.urlencode(values))
         except:
-            print "Unable to login with mvpd"
+            log ("Unable to login with mvpd", True)
             return False
 
         res = resp.read()
@@ -70,7 +71,7 @@ class Sportsnet:
             resp = opener.open('https://now.sportsnet.ca/signinmvpd?',
                                urllib.urlencode(values))
         except:
-            print "Unable to login with signinmvpd"
+            log ("Unable to login with signinmvpd", True)
             return False
 
         res = resp.read()
@@ -90,7 +91,7 @@ class Sportsnet:
         try:
             resp = opener.open('https://now.sportsnet.ca/secure/mvpd/myrogers?'+urllib.urlencode(values))
         except:
-            print "Unable to login with signinmvpd"
+            log ("Unable to login with signinmvpd", True)
             return False
 
         res = resp.read()

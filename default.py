@@ -27,6 +27,8 @@ def getAuthCredentials():
 
     mso = __settings__.getSetting("mso")
 
+    log("Got from settings the username '" + username + "' for provider '" + mso + "'")
+
     return { 'u' : username, 'p' : password, 'm' : mso }
 
 
@@ -48,6 +50,8 @@ def createMainMenu():
 
         values = { 'menu' : 'channel', 'name' : desc,
                    'id' : channel['neulion_id'], 'abbr' : channel['id'] }
+
+        log("Channel information: " + format(values))
 
         title = values['name']
         showTitle = channel['name']
@@ -92,24 +96,24 @@ def playChannel(values):
     token = stream['token']
     stream = stream['stream']
     headers = {
-        ':authority': 'prod-lic2widevine.sd-ngp.net',
-        ':method': 'POST',
-        ':path': '/proxy',
-        ':scheme': 'https',
+        'method': 'POST',
         'accept': '*/*',
+        'origin': 'https://now.sportsnet.ca',
+        'authority': 'prod-lic2widevine.sd-ngp.net',
+        'path': '/proxy',
+        'scheme': 'https',
         'accept-encoding': 'gzip, deflate, br',
         'accept-language': 'en-CA%2Cen-GB%3Bq%3D0.9%2Cen-US%3Bq%3D0.8%2Cen%3Bq%3D0.7',
         'authorization': 'bearer {}'.format(token),
-        'origin': 'https://now.sportsnet.ca',
         'referer': 'https://now.sportsnet.ca/',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36',
-        'content-type': '',
-        'Accept-Charset': ''
+        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36'
     };
 
     header_str = '&'.join(["{}={}".format(k, v) for k, v in headers.items()])
     lic_srv = 'https://prod-lic2widevine.sd-ngp.net/proxy|{0}|R{{SSM}}|'.format(header_str)
     name = values['name'][0]
+
+    log ("Trying to play '" + values['name'][0] + "' with license server string '" + lic_srv + "'")
 
     inputstream_helper = inputstreamhelper.Helper('mpd', drm='widevine')
     if inputstream_helper.check_inputstream():
@@ -146,7 +150,7 @@ def getChannelStream(channelId, channelName, msoName):
     stream = sn.getChannel(channelId, channelName, msoName)
     if not stream:
         # auth token may have expired - attempt re-auth first
-        print('Auth token may have expired. Attempting re-auth.')
+        log ("Auth token may have expired. Attempting re-auth.")
         creds = getAuthCredentials()
         if sn.authorize(creds['u'], creds['p'], creds['m']):
             return sn.getChannel(channelId, channelName, msoName)
