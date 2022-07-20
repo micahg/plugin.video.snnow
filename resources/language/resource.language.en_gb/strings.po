@@ -17,7 +17,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgctxt "#30000"
-msgid "Empty User Name<"
+msgid "Empty User Name"
 msgstr ""
 
 msgctxt "#30001"
