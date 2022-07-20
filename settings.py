@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import object
 import os, json
 
 def log(msg, error = False):
@@ -6,9 +8,9 @@ def log(msg, error = False):
         full_msg = "plugin.video.mlslive: {0}".format(msg)
         xbmc.log(full_msg, level=xbmc.LOGERROR if error else xbmc.LOGINFO)
     except:
-        print msg
+        print(msg)
 
-class Settings:
+class Settings(object):
 
     def __init__(self):
         try:
@@ -58,7 +60,7 @@ class Settings:
         except:
             return None
 
-        if provider in settings.keys():
+        if provider in list(settings.keys()):
             return settings[provider]
 
         return None

@@ -1,7 +1,11 @@
-import urllib, urllib2, re
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
+import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, re
 from cookies import Cookies
 
-class Rogers:
+class Rogers(object):
     """
     @class Rogers
     
@@ -26,14 +30,14 @@ class Rogers:
         uri = streamProvider.getAuthURI('Rogers')
 
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))#,
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))#,
                                       #urllib2.HTTPHandler(debuglevel=1),
                                       #urllib2.HTTPSHandler(debuglevel=1))
 
         try:
             resp = opener.open(uri)
         except:
-            print "Unable get OAUTH location"
+            print("Unable get OAUTH location")
             return None
         Cookies.saveCookieJar(jar)
 
@@ -67,7 +71,7 @@ class Rogers:
         @param url the OAuth URL
         """
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
         values = {'__VIEWSTATE' : viewstate,
                   '__VIEWSTATEGENERATOR' : viewstategen,
@@ -77,9 +81,9 @@ class Rogers:
                   'Login' : 'Sign in' }
 
         try:
-            resp = opener.open(url, urllib.urlencode(values))
-        except urllib2.URLError, e:
-            print e.args
+            resp = opener.open(url, urllib.parse.urlencode(values))
+        except urllib.error.URLError as e:
+            print(e.args)
         Cookies.saveCookieJar(jar)
 
         return True

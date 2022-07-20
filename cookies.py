@@ -1,3 +1,7 @@
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 import os
 
 def my_time2isoz(t=None):
@@ -18,7 +22,7 @@ def my_lwp_cookie_str(cookie):
     This method is used to monkey patch lwp_cookie_str from _LWPCookieJar. See
     my_time2isoz for a description of the problem.
     """
-    from cookielib import join_header_words
+    from http.cookiejar import join_header_words
     h = [(cookie.name, cookie.value),
          ("path", cookie.path),
          ("domain", cookie.domain)]
@@ -33,7 +37,7 @@ def my_lwp_cookie_str(cookie):
     if cookie.comment: h.append(("comment", cookie.comment))
     if cookie.comment_url: h.append(("commenturl", cookie.comment_url))
 
-    keys = cookie._rest.keys()
+    keys = list(cookie._rest.keys())
     keys.sort()
     for k in keys:
         h.append((k, str(cookie._rest[k])))
@@ -42,7 +46,7 @@ def my_lwp_cookie_str(cookie):
 
     return join_header_words([h])
 
-class Cookies:
+class Cookies(object):
     """
     Class to simplify cookie jar management.
     """
@@ -88,9 +92,9 @@ class Cookies:
         Create the cookie jar file. Do not use this; instead, call getCookieJar,
         which will create the cookie jar if it doesn't already exist
         """
-        import cookielib
+        import http.cookiejar
         cookie_file = self.getCookieFile()
-        return cookielib.LWPCookieJar(cookie_file)
+        return http.cookiejar.LWPCookieJar(cookie_file)
 
 
     def loadCookieJar(self):
@@ -98,8 +102,8 @@ class Cookies:
         Load the cookie jar file. Do not use this; instead, call getCookieJar,
         which will load the cookie jar if it already exists.
         """
-        import cookielib
-        jar = cookielib.LWPCookieJar()
+        import http.cookiejar
+        jar = http.cookiejar.LWPCookieJar()
         cookie_file = self.getCookieFile()
         jar.load(cookie_file,ignore_discard=True)
         return jar

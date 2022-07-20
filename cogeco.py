@@ -1,7 +1,11 @@
-import urllib, urllib2, re
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
+import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, re
 from cookies import Cookies
 
-class Cogeco:
+class Cogeco(object):
     """
     @class Cogeco
     
@@ -25,7 +29,7 @@ class Cogeco:
         uri =  streamProvider.getAuthURI("Cogeco")
 
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))#,
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))#,
                                       #urllib2.HTTPHandler(debuglevel=1),
                                       #urllib2.HTTPSHandler(debuglevel=1))
 
@@ -33,7 +37,7 @@ class Cogeco:
         try:
             resp = opener.open(uri)
         except:
-            print "Unable to redirect to auth page."
+            print("Unable to redirect to auth page.")
             return None
         Cookies.saveCookieJar(jar)
 
@@ -42,19 +46,19 @@ class Cogeco:
         # TODO: this could be made a function to to parse and return the value based on an expression
         action = re.search('<form.*?action=\"(.*?)\"', html, re.MULTILINE)
         if not action:
-            print "Unable to find action form"
+            print("Unable to find action form")
             return None
         action = action.group(1)
 
         saml = re.search('<input.*?name=\"SAMLRequest\".*?value=\"(.*?)\"', html, re.MULTILINE)
         if not saml:
-            print "Unable to find SAML request."
+            print("Unable to find SAML request.")
             return None
         saml = saml.group(1)
 
         relay = re.search('<input.*?name=\"RelayState\".*?value=\"(.*?)\"', html, re.MULTILINE)
         if not relay:
-            print "Unable to find relay state."
+            print("Unable to find relay state.")
             return None
         relay = relay.group(1)
 
@@ -65,7 +69,7 @@ class Cogeco:
     def postAuthSaml(username, password, saml, relay, url):
         
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
         values = {
             'SAMLRequest' : saml, 
@@ -73,9 +77,9 @@ class Cogeco:
         }
 
         try:
-            resp = opener.open(url, urllib.urlencode(values))
-        except urllib2.URLError, e:
-            print e.args
+            resp = opener.open(url, urllib.parse.urlencode(values))
+        except urllib.error.URLError as e:
+            print(e.args)
             return None
         Cookies.saveCookieJar(jar)
 
@@ -83,7 +87,7 @@ class Cogeco:
 
         action = re.search('<form.*?action=\"(.*?)\"', html, re.MULTILINE)
         if not action:
-            print "Unable to find action form"
+            print("Unable to find action form")
             return None
 
         action = "https://customer-services.cogeco.com" + action.group(1)
@@ -94,7 +98,7 @@ class Cogeco:
     @staticmethod
     def postLogin(username, password, url):
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
         values = {
             'username' : username, 
@@ -102,28 +106,28 @@ class Cogeco:
         }
 
         try:
-            resp = opener.open(url, urllib.urlencode(values))
-        except urllib2.URLError, e:
-            print e.args
+            resp = opener.open(url, urllib.parse.urlencode(values))
+        except urllib.error.URLError as e:
+            print(e.args)
         Cookies.saveCookieJar(jar)
 
         html = resp.read()
 
         action = re.search('<form.*?action=\"(.*?)\"', html, re.MULTILINE)
         if not action:
-            print "Unable to find action form"
+            print("Unable to find action form")
             return None
         action = action.group(1)
 
         saml = re.search('<input.*?name=\"SAMLResponse\".*?value=\"(.*?)\"', html, re.MULTILINE)
         if not saml:
-            print "Unable to find SAML response."
+            print("Unable to find SAML response.")
             return None
         saml = saml.group(1)
 
         relay = re.search('<input.*?name=\"RelayState\".*?value=\"(.*?)\"', html, re.MULTILINE)
         if not relay:
-            print "Unable to find relay state."
+            print("Unable to find relay state.")
             return None
         relay = relay.group(1)
 
@@ -133,7 +137,7 @@ class Cogeco:
     @staticmethod
     def getSAMLAssertionConsumer(saml, relay, url): 
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
         values = {
             'SAMLResponse' : saml,
@@ -141,9 +145,9 @@ class Cogeco:
         }
 
         try:
-            resp = opener.open(url, urllib.urlencode(values))
-        except urllib2.URLError, e:
-            print e.args
+            resp = opener.open(url, urllib.parse.urlencode(values))
+        except urllib.error.URLError as e:
+            print(e.args)
         Cookies.saveCookieJar(jar)
 
         return Cogeco.completeBackgroundLogin()
@@ -153,12 +157,12 @@ class Cogeco:
     def completeBackgroundLogin():
         jar = Cookies.getCookieJar()
 
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
         try:
             resp = opener.open('https://sp.auth.adobe.com/adobe-services/completeBackgroundLogin')
-        except urllib2.URLError, e:
-            print e.args
+        except urllib.error.URLError as e:
+            print(e.args)
         Cookies.saveCookieJar(jar)
 
         return True

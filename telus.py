@@ -1,6 +1,10 @@
-import urllib, urllib2, re
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
+import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, re
 from cookies import Cookies
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 
 def parseForm(inputs, html):
@@ -22,7 +26,7 @@ def parseForm(inputs, html):
     return values
 
 
-class Telus:
+class Telus(object):
     """
     @class Telus 
     
@@ -56,12 +60,12 @@ class Telus:
         uri = streamProvider.getAuthURI('telus_auth-gateway_net')
 
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
         try:
             resp = opener.open(uri)
         except:
-            print "Unable get Telus OAUTH location"
+            print("Unable get Telus OAUTH location")
             return None
         Cookies.saveCookieJar(jar)
 
@@ -70,7 +74,7 @@ class Telus:
         values = parseForm(['SAMLRequest', 'RelayState'], html)
         action = values.pop('action')
         if values == None:
-            print "Form parsing failed in authorize"
+            print("Form parsing failed in authorize")
             return None
 
         return Telus.getBookend(username, password, values, action)
@@ -87,19 +91,19 @@ class Telus:
         @param url the entitlement URL
         """
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
         try:
-            resp = opener.open(url, urllib.urlencode(values))
-        except urllib2.URLError, e:
-            print e.args
+            resp = opener.open(url, urllib.parse.urlencode(values))
+        except urllib.error.URLError as e:
+            print(e.args)
             return None
         Cookies.saveCookieJar(jar)
 
         html = resp.read()
         values = parseForm(['AuthState', 'id', 'coeff'], html)
         if values == None:
-            print "Form parsing failed in getBookend"
+            print("Form parsing failed in getBookend")
             return None
         values['history'] = '2'
 
@@ -110,15 +114,15 @@ class Telus:
     @staticmethod
     def getBookendAgain(username, password, values, url):
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
-        values = urllib.urlencode(values)
+        values = urllib.parse.urlencode(values)
         url += '?' + values
 
         try:
             resp = opener.open(url, values)
-        except urllib2.URLError, e:
-            print e.args
+        except urllib.error.URLError as e:
+            print(e.args)
             return None
         Cookies.saveCookieJar(jar)
 
@@ -136,7 +140,7 @@ class Telus:
 
         values = parseForm(['AuthState', 'id', 'coeff'], html)
         if values == None:
-            print "Form parsing failed in getBookendAgain"
+            print("Form parsing failed in getBookendAgain")
             return None
         values['history'] = '7'
 
@@ -150,19 +154,19 @@ class Telus:
         values = parseForm(['login_type', 'remember_me', 'source',
                                   'source_button'], html)
         if values == None:
-            print "Form parsing failed in login"
+            print("Form parsing failed in login")
             return None
         action = values.pop('action', None)
         values['username'] = username
         values['password'] = password
 
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
         try:
-            resp = opener.open(action, urllib.urlencode(values))
-        except urllib2.URLError, e:
-            print e.args
+            resp = opener.open(action, urllib.parse.urlencode(values))
+        except urllib.error.URLError as e:
+            print(e.args)
             return None
         Cookies.saveCookieJar(jar)
 
@@ -170,7 +174,7 @@ class Telus:
 
         url = re.search('location\.href.*?=.*?\"(.*?)\"', html, re.MULTILINE)
         if not url:
-            print "Unable to parse URL from login result"
+            print("Unable to parse URL from login result")
             return None
         url = url.group(1)
 
@@ -180,21 +184,21 @@ class Telus:
     @staticmethod
     def discoveryAssociations(url):
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
         values = { 'AuthState' : url[url.find('='):] }
 
         try:
-            resp = opener.open(url, urllib.urlencode(values))
-        except urllib2.URLError, e:
-            print e.args
+            resp = opener.open(url, urllib.parse.urlencode(values))
+        except urllib.error.URLError as e:
+            print(e.args)
             return None
         Cookies.saveCookieJar(jar)
         html = resp.read()
 
         values = parseForm(['AuthState', 'id', 'coeff'], html)
         if values == None:
-            print "Form parsing failed in getBookendAgain"
+            print("Form parsing failed in getBookendAgain")
             return None
 
         return Telus.lastBookend(values, resp.url.split('?')[0])
@@ -205,15 +209,15 @@ class Telus:
         Make the lastBookend call
         """
         values['history'] = '7'
-        url = url + '?' + urllib.urlencode(values)
+        url = url + '?' + urllib.parse.urlencode(values)
 
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
         try:
             resp = opener.open(url)
-        except urllib2.URLError, e:
-            print e.args
+        except urllib.error.URLError as e:
+            print(e.args)
             return None
         Cookies.saveCookieJar(jar)
 
@@ -221,7 +225,7 @@ class Telus:
 
         values = parseForm(['SAMLResponse', 'RelayState'], html)
         if values == None:
-            print "Failed to parse last bookend"
+            print("Failed to parse last bookend")
             return None
         action = values.pop('action')
 
@@ -234,11 +238,11 @@ class Telus:
     @staticmethod
     def authGateway(values, url):
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
         try:
-            resp = opener.open(url, urllib.urlencode(values))
-        except urllib2.URLError, e:
+            resp = opener.open(url, urllib.parse.urlencode(values))
+        except urllib.error.URLError as e:
             if e.reason[1] == "No address associated with hostname":
                 return True
             return None
@@ -248,7 +252,7 @@ class Telus:
 
         url = re.search('location\.href.*?=.*?\"(.*?)\"', html, re.MULTILINE)
         if not url:
-            print "Unable to parse auth gateway return"
+            print("Unable to parse auth gateway return")
             return None
         url = url.group(1)
 

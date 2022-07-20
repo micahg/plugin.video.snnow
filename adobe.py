@@ -1,9 +1,13 @@
-import urllib, urllib2, xml.dom.minidom, uuid
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
+import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, xml.dom.minidom, uuid
 from settings import Settings
 from cookies import Cookies
 
 
-class AdobePass:
+class AdobePass(object):
 
     CONFIG_URI = 'https://sp.auth.adobe.com/adobe-services/config/SportsnetNowCA'
     SESSION_DEVICE_URI = 'https://sp.auth.adobe.com/adobe-services/sessionDevice'
@@ -18,7 +22,7 @@ class AdobePass:
         Session Device.
         """
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))#,
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))#,
                                       #urllib2.HTTPHandler(debuglevel=1),
                                       #urllib2.HTTPSHandler(debuglevel=1))
 
@@ -30,9 +34,9 @@ class AdobePass:
         opener.addheaders = [('User-Agent', AdobePass.USER_AGENT)]
 
         try:
-            resp = opener.open(AdobePass.SESSION_DEVICE_URI, urllib.urlencode(values))
-        except urllib2.URLError, e:
-            print e.args
+            resp = opener.open(AdobePass.SESSION_DEVICE_URI, urllib.parse.urlencode(values))
+        except urllib.error.URLError as e:
+            print(e.args)
             return False
         Cookies.saveCookieJar(jar)
 
@@ -70,19 +74,19 @@ class AdobePass:
         values = { 'authentication_token' : settings['AUTHN_TOKEN'],
                    'requestor_id' : streamProvider.getRequestorID() }
 
-        value_str = urllib.urlencode(values)
+        value_str = urllib.parse.urlencode(values)
         for channel in channels:
-            value_str += '&' + urllib.urlencode({ 'resource_id' : channel['id'] })
+            value_str += '&' + urllib.parse.urlencode({ 'resource_id' : channel['id'] })
 
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
         opener.addheaders = [('User-Agent', AdobePass.USER_AGENT)]
 
         try:
             resp = opener.open(AdobePass.PREAUTHORIZE_URI, value_str)
-        except urllib2.URLError, e:
-            print e.args
+        except urllib.error.URLError as e:
+            print(e.args)
             return None
         Cookies.saveCookieJar(jar)
 
@@ -122,25 +126,25 @@ class AdobePass:
                    'userMeta' : '1' }
 
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
         opener.addheaders = [('User-Agent', AdobePass.USER_AGENT)]
 
         try:
-            resp = opener.open(AdobePass.AUTHORIZE_URI, urllib.urlencode(values))
-        except urllib2.URLError, e:
-            print e.args
+            resp = opener.open(AdobePass.AUTHORIZE_URI, urllib.parse.urlencode(values))
+        except urllib.error.URLError as e:
+            print(e.args)
             return False
         Cookies.saveCookieJar(jar)
 
         resp_xml = resp.read()
         if resp_xml.find('notAuthorized') >= 0:
-            print "Unable to authorise for channel '" + channel + "'"
+            print("Unable to authorise for channel '" + channel + "'")
             return False
 
         try:
             dom = xml.dom.minidom.parseString(resp_xml)
         except:
-            print "Unable to parse device authorization xml."
+            print("Unable to parse device authorization xml.")
             return False
 
         result_node = dom.getElementsByTagName('result')[0]
@@ -182,14 +186,14 @@ class AdobePass:
                    'device_id' : streamProvider.getDeviceID() }
 
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
         opener.addheaders = [('User-Agent', AdobePass.USER_AGENT)]
 
         try:
-            resp = opener.open(AdobePass.DEVICE_SHORT_AUTHORIZE, urllib.urlencode(values))
-        except urllib2.URLError, e:
-            print e.args
+            resp = opener.open(AdobePass.DEVICE_SHORT_AUTHORIZE, urllib.parse.urlencode(values))
+        except urllib.error.URLError as e:
+            print(e.args)
             return ''
         Cookies.saveCookieJar(jar)
 

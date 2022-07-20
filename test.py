@@ -1,13 +1,17 @@
 #!/usr/bin/python
 #import httplib as http_client
 #http_client.HTTPConnection.debuglevel = 1
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
 import requests, logging
 
 
 try: # for Python 3
     from http.client import HTTPConnection
 except ImportError:
-    from httplib import HTTPConnection
+    from http.client import HTTPConnection
 HTTPConnection.debuglevel = 1
 
 logging.basicConfig() # you need to initialize logging, otherwise you will not see anything from requests
@@ -40,7 +44,7 @@ def playChannel(mso, token):
 
     r = requests.post('https://prod-lic2widevine.sd-ngp.net/proxy', data='', headers=headers)
 
-    print 'Status code is {}'.format(str(r.status_code))
+    print('Status code is {}'.format(str(r.status_code)))
 
     return
 
@@ -68,7 +72,7 @@ abbr = None
 if options.user != None and options.password != None:
     if not sn.authorize(options.user, options.password, options.mso):
         sys.exit(1)
-    print "Authorization Complete."
+    print("Authorization Complete.")
 
 for channel in  channels:
     if options.id:
@@ -78,11 +82,11 @@ for channel in  channels:
 if abbr:
     # ensure an MSO
     if options.mso == None:
-        print "No MSO specified"
+        print("No MSO specified")
         sys.exit(1)
 
     if AdobePass.getAuthnToken() == None:
-        print "Not logged in..."
+        print("Not logged in...")
         sys.exit(1)
 
     stream = sn.getChannel(options.id, abbr, options.mso)
@@ -97,4 +101,4 @@ else:
         desc = channel['description'] if 'description' in channel else ".*???*."
         chan_id = channel['id']
 
-        print str(channel['neulion_id']) + ') ' + desc + ' (' + chan_id + ') - ' + str(prog)
+        print(str(channel['neulion_id']) + ') ' + desc + ' (' + chan_id + ') - ' + str(prog))

@@ -1,7 +1,12 @@
-import urllib, urllib2, time, json, re
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
+import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, time, json, re
 from cookies import Cookies
 
-class Sportsnet:
+class Sportsnet(object):
     """
     @class Sportsnet
     
@@ -39,8 +44,8 @@ class Sportsnet:
     @staticmethod
     def mvpd():
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
-        opener.addheaders = [('User-Agent', urllib.quote(Sportsnet.USER_AGENT))]
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+        opener.addheaders = [('User-Agent', urllib.parse.quote(Sportsnet.USER_AGENT))]
 
         values = { 'id' : 'myrogers',
                    'format' : 'json',
@@ -49,9 +54,9 @@ class Sportsnet:
 
         try:
             resp = opener.open('https://now.sportsnet.ca/mvpd?',
-                               urllib.urlencode(values))
+                               urllib.parse.urlencode(values))
         except:
-            print "Unable to login with mvpd"
+            print("Unable to login with mvpd")
             return False
 
         res = resp.read()
@@ -62,15 +67,15 @@ class Sportsnet:
     @staticmethod
     def signinmvpd():
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
-        opener.addheaders = [('User-Agent', urllib.quote(Sportsnet.USER_AGENT))]
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+        opener.addheaders = [('User-Agent', urllib.parse.quote(Sportsnet.USER_AGENT))]
 
         values = { 'id' : 'myrogers' }
         try:
             resp = opener.open('https://now.sportsnet.ca/signinmvpd?',
-                               urllib.urlencode(values))
+                               urllib.parse.urlencode(values))
         except:
-            print "Unable to login with signinmvpd"
+            print("Unable to login with signinmvpd")
             return False
 
         res = resp.read()
@@ -80,17 +85,17 @@ class Sportsnet:
     @staticmethod
     def callback(username, password):
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
-        opener.addheaders = [('User-Agent', urllib.quote(Sportsnet.USER_AGENT))]
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+        opener.addheaders = [('User-Agent', urllib.parse.quote(Sportsnet.USER_AGENT))]
 
         values = { 'callback' : 'mvpdSignInCallback',
                    'username' :  username,
                    'password' : password,
                    't' : str(int(time.time())) }
         try:
-            resp = opener.open('https://now.sportsnet.ca/secure/mvpd/myrogers?'+urllib.urlencode(values))
+            resp = opener.open('https://now.sportsnet.ca/secure/mvpd/myrogers?'+urllib.parse.urlencode(values))
         except:
-            print "Unable to login with signinmvpd"
+            print("Unable to login with signinmvpd")
             return False
 
         res = resp.read()
@@ -100,7 +105,7 @@ class Sportsnet:
 
         jsres = json.loads(json_data.group(1))
 
-        if not 'code' in jsres.keys():
+        if not 'code' in list(jsres.keys()):
             return True
 
         if jsres['code'] != 'loginsuccess':

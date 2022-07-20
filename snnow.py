@@ -1,11 +1,16 @@
-import urllib, urllib2, random, time, datetime, json, xml.dom.minidom
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import range
+from builtins import object
+import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, random, time, datetime, json, xml.dom.minidom
 from adobe import AdobePass
 from msofactory import MSOFactory
 from cookies import Cookies
 from settings import Settings, log
 
 
-class SportsnetNow:
+class SportsnetNow(object):
 
     def __init__(self):
         """
@@ -46,7 +51,7 @@ class SportsnetNow:
         dev_id = ''
         if not settings:
             dev_id = ''
-        elif 'DEV_ID' in settings.keys():
+        elif 'DEV_ID' in list(settings.keys()):
             dev_id = settings['DEV_ID']
 
         if not dev_id:
@@ -73,13 +78,13 @@ class SportsnetNow:
         request other than the cookies returned.
         """
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
-        opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+        opener.addheaders = [('User-Agent', urllib.parse.quote(self.USER_AGENT))]
 
         try:
             resp = opener.open(self.AUTHORIZED_MSO_URI)
         except:
-            print "Unable get OAUTH location"
+            print("Unable get OAUTH location")
             return None
         Cookies.saveCookieJar(jar)
 
@@ -107,13 +112,13 @@ class SportsnetNow:
         url = self.EPG_PREFIX + now.strftime("%Y/%m/%d.xml")
 
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
-        opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+        opener.addheaders = [('User-Agent', urllib.parse.quote(self.USER_AGENT))]
 
         try:
             resp = opener.open(url)
-        except urllib2.URLError, e:
-            print e.args
+        except urllib.error.URLError as e:
+            print(e.args)
             return None
         Cookies.saveCookieJar(jar)
 
@@ -161,17 +166,17 @@ class SportsnetNow:
 
     def getChannels(self):
         settings = Settings.instance().get(self.getRequestorID())
-        if settings and 'CHANNELS' in settings.keys():
+        if settings and 'CHANNELS' in list(settings.keys()):
             return settings['CHANNELS']
 
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
-        opener.addheaders = [('User-Agent', urllib.quote(self.USER_AGENT))]
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+        opener.addheaders = [('User-Agent', urllib.parse.quote(self.USER_AGENT))]
 
         try:
             resp = opener.open(self.CONFIG_URI)
-        except urllib2.URLError, e:
-            print e.args
+        except urllib.error.URLError as e:
+            print(e.args)
             return None
         Cookies.saveCookieJar(jar)
 
@@ -193,12 +198,12 @@ class SportsnetNow:
         # Get the MSO class from the
         mso = MSOFactory.getMSO(msoName)
         if mso == None:
-            print "Invalid MSO"
+            print("Invalid MSO")
             return None
 
         # Authorize with the MSO
         if not mso.authorize(self, username, password):
-            print "Failed to authorize with MSO"
+            print("Failed to authorize with MSO")
             return False
 
         channels = self.getChannels()
@@ -206,12 +211,12 @@ class SportsnetNow:
             return True
 
         if not AdobePass.sessionDevice(self):
-            print "Session device failed."
+            print("Session device failed.")
             return False
 
         result = AdobePass.preAuthorize(self, channels)
         if not result:
-            print "Preauthorize failed."
+            print("Preauthorize failed.")
             return False
 
         return True
@@ -231,7 +236,7 @@ class SportsnetNow:
         """
         mso = MSOFactory.getMSO(msoName)
         if mso == None:
-            print "Invalid MSO"
+            print("Invalid MSO")
             return None
 
         mso_id = mso.getID()
@@ -239,7 +244,7 @@ class SportsnetNow:
         if mso_id != 'Sportsnet':
             ap = AdobePass()
             if not ap.authorizeDevice(self, mso_id, name):
-                print "Authorize device failed"
+                print("Authorize device failed")
                 return None
 
             token = AdobePass.deviceShortAuthorize(self, msoName)
@@ -266,20 +271,20 @@ class SportsnetNow:
             values['aptoken'] = token
 
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar),
-                                      urllib2.HTTPHandler(debuglevel=1),
-                                      urllib2.HTTPSHandler(debuglevel=1))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar),
+                                      urllib.request.HTTPHandler(debuglevel=1),
+                                      urllib.request.HTTPSHandler(debuglevel=1))
         
-        url = self.PUBLISH_POINT + urllib.urlencode(values)
+        url = self.PUBLISH_POINT + urllib.parse.urlencode(values)
 
         try:
             resp = opener.open(url)
-        except urllib2.HTTPError as err:
+        except urllib.error.HTTPError as err:
             log("getPublishPoint {0}: '{1}'".format(err.code, err.reason), True)
             resp = err.read()
             log("getPublishPoint returns '{0}'".format(resp))
             return None
-        except urllib2.URLError as err:
+        except urllib.error.URLError as err:
             log("getPublishPoint: '{0}'".format(err.reason), True)
             return None
 

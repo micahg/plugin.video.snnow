@@ -1,7 +1,11 @@
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
 import snnow
 from settings import log
 from adobe import AdobePass
-import xbmc, xbmcplugin, xbmcgui, xbmcaddon, os, urllib, urlparse
+import xbmc, xbmcplugin, xbmcgui, xbmcaddon, os, urllib.request, urllib.parse, urllib.error, urllib.parse
 import inputstreamhelper
 __settings__ = xbmcaddon.Addon(id='plugin.video.snnow')
 __language__ = __settings__.getLocalizedString
@@ -52,9 +56,9 @@ def createMainMenu():
         title = values['name']
         showTitle = channel['name']
 
-        if chanId in guide.keys():
+        if chanId in list(guide.keys()):
             prog = guide[chanId]
-            for key in prog.keys():
+            for key in list(prog.keys()):
                 values[key] = prog[key].encode('utf-8')
 
             if prog['tvshowtitle']:
@@ -78,7 +82,7 @@ def createMainMenu():
         if 'cast_image_url' in channel:
             live.setIconImage(channel['cast_image_url'])
         xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
-                                    url=sys.argv[0] + "?" + urllib.urlencode(values),
+                                    url=sys.argv[0] + "?" + urllib.parse.urlencode(values),
                                     listitem=live,
                                     isFolder=True)
 
@@ -107,7 +111,7 @@ def playChannel(values):
         'Accept-Charset': ''
     };
 
-    header_str = '&'.join(["{}={}".format(k, v) for k, v in headers.items()])
+    header_str = '&'.join(["{}={}".format(k, v) for k, v in list(headers.items())])
     lic_srv = 'https://prod-lic2widevine.sd-ngp.net/proxy|{0}|R{{SSM}}|'.format(header_str)
     name = values['name'][0]
 
@@ -180,6 +184,6 @@ if len(sys.argv[2]) == 0:
     # show the main menu
     createMainMenu()
 else:
-    values = urlparse.parse_qs(sys.argv[2][1:])
+    values = urllib.parse.parse_qs(sys.argv[2][1:])
     if values['menu'][0] == 'channel':
         playChannel(values)

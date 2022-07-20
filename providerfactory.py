@@ -1,6 +1,7 @@
+from builtins import object
 from snnow import SportsnetNow
 
-class ProviderFactory:
+class ProviderFactory(object):
 
     @staticmethod
     def getProviderNames():

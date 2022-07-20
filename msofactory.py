@@ -1,6 +1,7 @@
+from builtins import object
 import sportsnet, rogers, shawgo, telus, cogeco
 
-class MSOFactory:
+class MSOFactory(object):
 
     @staticmethod
     def getMSO(name):

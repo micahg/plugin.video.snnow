@@ -1,8 +1,12 @@
-import urllib, urllib2, re
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
+import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, re
 from cookies import Cookies
-from urlparse import urlparse
+from urllib.parse import urlparse
 
-class ShawGo:
+class ShawGo(object):
     """
     @class ShawGo 
     
@@ -28,14 +32,14 @@ class ShawGo:
         uri = streamProvider.getAuthURI('ShawGo')
 
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))#,
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))#,
                                       #urllib2.HTTPHandler(debuglevel=1),
                                       #urllib2.HTTPSHandler(debuglevel=1))
 
         try:
             resp = opener.open(uri)
         except:
-            print "Unable get OAUTH location"
+            print("Unable get OAUTH location")
             return None
         Cookies.saveCookieJar(jar)
 
@@ -43,19 +47,19 @@ class ShawGo:
 
         action = re.search('<form.*?action=\"(.*?)"', html, re.MULTILINE)
         if not action:
-            print "Unable to find action form"
+            print("Unable to find action form")
             return None
         action = action.group(1)
 
         saml = re.search('<input.*?name=\"SAMLRequest\".*?value=\"(.*?)\"', html, re.MULTILINE)
         if not saml:
-            print "Unable to find SAMLRequest."
+            print("Unable to find SAMLRequest.")
             return None
         saml = saml.group(1)
 
         relay = re.search('<input.*?name=\"RelayState\".*?value=\"(.*?)\"', html, re.MULTILINE)
         if not relay:
-            print "Unable to find relay state."
+            print("Unable to find relay state.")
             return None
         relay = relay.group(1)
 
@@ -73,15 +77,15 @@ class ShawGo:
         @param url the entitlement URL
         """
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
         values = {'SAMLRequest' : saml,
                   'RelayState' : relay }
 
         try:
-            resp = opener.open(url, urllib.urlencode(values))
-        except urllib2.URLError, e:
-            print e.args
+            resp = opener.open(url, urllib.parse.urlencode(values))
+        except urllib.error.URLError as e:
+            print(e.args)
             return None
         Cookies.saveCookieJar(jar)
 
@@ -89,7 +93,7 @@ class ShawGo:
 
         action = re.search('<form.*?action=\"(.*?)".*?id=\"form3">', html, re.MULTILINE)
         if not action:
-            print "Unable to find action form"
+            print("Unable to find action form")
             return None
         action = action.group(1)
 
@@ -119,7 +123,7 @@ class ShawGo:
         @param url the entitlement URL
         """
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
         values = {'pf.username' : username,
                   'selectedPCV': idp,
@@ -128,22 +132,22 @@ class ShawGo:
                   'pf.cancel': ''}
 
         try:
-            resp = opener.open(url, urllib.urlencode(values))
-        except urllib2.URLError, e:
-            print e.args
+            resp = opener.open(url, urllib.parse.urlencode(values))
+        except urllib.error.URLError as e:
+            print(e.args)
         Cookies.saveCookieJar(jar)
 
         html = resp.read()
 
         action = re.search('<form.*?action=\"(.*?)"', html, re.MULTILINE)
         if not action:
-            print "Unable to find action form"
+            print("Unable to find action form")
             return None
         action = action.group(1)
 
         relay = re.search('<input.*?name=\"RelayState\".*?value=\"(.*?)\"', html, re.MULTILINE)
         if not relay:
-            print "Unable to find relay state."
+            print("Unable to find relay state.")
             return None
         relay = relay.group(1)
 
@@ -162,15 +166,15 @@ class ShawGo:
     def getSAMLAssertionConsumer(saml, relay, url): 
 
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
         values = {'SAMLResponse' : saml,
                   'RelayState' : relay }
 
         try:
-            resp = opener.open(url, urllib.urlencode(values))
-        except urllib2.URLError, e:
-            print e.args
+            resp = opener.open(url, urllib.parse.urlencode(values))
+        except urllib.error.URLError as e:
+            print(e.args)
         Cookies.saveCookieJar(jar)
 
         return ShawGo.completeBackgroundLogin()
@@ -178,12 +182,12 @@ class ShawGo:
     @staticmethod
     def completeBackgroundLogin():
         jar = Cookies.getCookieJar()
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(jar))
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
         try:
             resp = opener.open('https://sp.auth.adobe.com/adobe-services/completeBackgroundLogin')
-        except urllib2.URLError, e:
-            print e.args
+        except urllib.error.URLError as e:
+            print(e.args)
         Cookies.saveCookieJar(jar)
 
         return True
