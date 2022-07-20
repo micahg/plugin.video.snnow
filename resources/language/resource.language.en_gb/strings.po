@@ -1,0 +1,73 @@
+# Kodi Media Center language file
+# Addon Name: SportsNet Now
+# Addon id: plugin.video.snnow
+# Addon Provider: micahg
+msgid ""
+msgstr ""
+"Project-Id-Version: Kodi Addons\n"
+"Report-Msgid-Bugs-To: alanwww1@kodi.org\n"
+"POT-Creation-Date: 2018-02-23 12:00-0500\n"
+"PO-Revision-Date: 2018-02-23 12:00-0500\n"
+"Last-Translator: micahg\n"
+"Language-Team: en_CA\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "#30000"
+msgid "Empty User Name<"
+msgstr ""
+
+msgctxt "#30001"
+msgid "Please add your user name to the settings"
+msgstr ""
+
+msgctxt "#30002"
+msgid "Empty Password""
+msgstr ""
+
+msgctxt "#30003"
+msgid "Please add your password to the settings"
+msgstr ""
+
+msgctxt "#30004"
+msgid "Authorisation Failed"
+msgstr ""
+
+msgctxt "#30005"
+msgid "Unable to authorise channel"
+msgstr ""
+
+msgctxt "#30006"
+msgid "Authorizing"
+msgstr ""
+
+msgctxt "#30007"
+msgid "Playback Error"
+msgstr ""
+
+msgctxt "#30008"
+msgid "Inputstream failed"
+msgstr ""
+
+msgctxt "#30010"
+msgid "Live"
+msgstr ""
+
+msgctxt "#30020"
+msgid "General"
+msgstr ""
+
+msgctxt "#30050"
+msgid "Username"
+msgstr ""
+
+msgctxt "#30051"
+msgid "Password"
+msgstr ""
+
+msgctxt "#30052"
+msgid "Cable Provider
+msgstr ""
